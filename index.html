@@ -395,7 +395,9 @@ table.stations td{padding:6px 8px}
 table.stations tbody tr{cursor:pointer}
 table.stations tbody tr:hover td{background:var(--papier-2)}
 table.stations tr.choisie td{background:var(--primaire-fond);color:var(--primaire-encre);font-weight:600}
-table.stations td.st-nom{white-space:nowrap}
+table.stations{width:100%}
+table.stations td.st-nom{white-space:normal;overflow-wrap:anywhere}
+table.stations td.st-num,table.stations th:not(:first-child){white-space:nowrap;text-align:right;width:1%}
 table.stations td.st-nom small{color:var(--discret);font-weight:400}
 .st-radio{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ligne);border-radius:50%;margin-right:7px;vertical-align:-1px}
 tr.choisie .st-radio{border:4px solid var(--primaire)}
@@ -4451,7 +4453,7 @@ function initTheme() {
 // Journal des versions : deux ou trois phrases par version, le détail va dans JOURNAL.md
 const CHANGELOG = [
   { v: "v6", date: "2026-10-22", titre: "Rapport de calcul",
-    texte: "Le bouton Note de calcul imprime un rapport sur le modèle de celui d'Alizé2, aux couleurs de B27 : page de garde (affaire, rédacteur, date), synthèse des verdicts, structure et coupe, chargement, trafic, valeurs admissibles couche par couche (CAM, NE, risque, ε6 ou σ6, -1/b, modules, Sh, SN, kr, kc, kd, ks), tableaux de résultats d'Alizé (valeurs de dimensionnement, contraintes et déformations au centre de la roue et au milieu du jumelage), courbes en profondeur, gel-dégel et conclusion, avec en-tête et numéro de page. Le profil en profondeur du détail du calcul nomme les couches, cote leurs faces, indique la nature des interfaces et relie les sauts en pointillé, comme la note. Champ Rédacteur, repris des projets Alizé. Correction : le dernier calcul mémorisé est de nouveau repris à l'ouverture de la page." },
+    texte: "Le bouton Note de calcul imprime un rapport sur le modèle de celui d'Alizé2, aux couleurs de B27 : page de garde (affaire, rédacteur, date), synthèse des verdicts, structure et coupe, chargement, trafic, valeurs admissibles couche par couche (CAM, NE, risque, ε6 ou σ6, -1/b, modules, Sh, SN, kr, kc, kd, ks), tableaux de résultats d'Alizé (valeurs de dimensionnement, contraintes et déformations au centre de la roue et au milieu du jumelage), courbes en profondeur, gel-dégel et conclusion, avec en-tête et numéro de page. Le profil en profondeur du détail du calcul nomme les couches, cote leurs faces, indique la nature des interfaces et relie les sauts en pointillé, comme la note. Le tableau des stations de gel tient dans sa colonne (colonne Distance seulement quand une commune est cherchée, noms sur deux lignes au besoin). Champ Rédacteur, repris des projets Alizé. Correction : le dernier calcul mémorisé est de nouveau repris à l'ouverture de la page." },
   { v: "v5", date: "2026-10-22", titre: "Résultats présentés comme Alizé",
     texte: "La vue \"Alizé\" du détail du calcul reprend les tableaux de l'onglet Résultats d'Alizé2 : valeurs de dimensionnement (εt et σt minimales, εz et σz maximales, direction et position, valeur admissible intercalée), contraintes et déformations, au centre de la roue ou au milieu du jumelage, avec les cisaillements, la déflexion en mm/100 et en µm, les mêmes axes, signes et arrondis. Les valeurs en surface sont calculées exactement (σz égale la pression du pneu sous la roue)." },
   { v: "v4", date: "2026-10-22", titre: "Projets Alizé et camion",
@@ -5743,18 +5745,19 @@ function choisirStationParDefaut() {
   if (c.length) { E.gel.station = "mf|" + c[0].s.num; E.gel.ir = null; }
 }
 function rendreStations() {
-  const g = E.gel, c = candidats(), courante = stationCourante();
+  // Sans commune, pas de colonne Distance : les cinq colonnes tiennent sans défilement horizontal
+  const g = E.gel, c = candidats(), courante = stationCourante(), avecDistance = !!g.site;
   if (!c.length) { $("#gelStations").innerHTML = `<p class="hint">Aucune station avec au moins 20 hivers complets sur cette période : choisir un département voisin, l'autre période, ou saisir l'indice.</p>`; return; }
   const ligne = ({ s, d }) => {
     const v = valeursStation(s, g.periode), choisie = courante && courante.num === s.num;
     const ecart = g.site && g.site.alt != null ? s.alt - g.site.alt : null;
     return `<tr class="${choisie ? "choisie" : ""}" data-num="${s.num}" tabindex="0" aria-selected="${!!choisie}" title="${v.n ? `${v.n} hivers complets sur la période` : ""}">
       <td class="st-nom"><span class="st-radio" aria-hidden="true"></span>${esc(s.nom)} <small>${s.dep}</small>${v.catalogue ? ` <span class="badge ok" title="Valeurs officielles du catalogue de 1998">catalogue</span>` : ""}</td>
-      <td>${d != null ? fr(d, d < 10 ? 1 : 0) + " km" : ""}</td>
-      <td title="${ecart != null ? `${ecart >= 0 ? "+" : ""}${grouper(ecart)} m par rapport au site` : ""}">${grouper(s.alt)} m${ecart != null && Math.abs(ecart) >= 150 ? ` <span class="st-alerte" title="Écart d'altitude de ${grouper(Math.abs(ecart))} m avec le site">${ico("attention", 13)}</span>` : ""}</td>
-      <td>${grouper(v.HE)}</td><td>${grouper(v.HR)}</td></tr>`;
+      ${avecDistance ? `<td class="st-num">${d != null ? fr(d, d < 10 ? 1 : 0) + " km" : ""}</td>` : ""}
+      <td class="st-num" title="${ecart != null ? `${ecart >= 0 ? "+" : ""}${grouper(ecart)} m par rapport au site` : ""}">${grouper(s.alt)} m${ecart != null && Math.abs(ecart) >= 150 ? ` <span class="st-alerte" title="Écart d'altitude de ${grouper(Math.abs(ecart))} m avec le site">${ico("attention", 13)}</span>` : ""}</td>
+      <td class="st-num">${grouper(v.HE)}</td><td class="st-num">${grouper(v.HR)}</td></tr>`;
   };
-  $("#gelStations").innerHTML = `<div class="table-defile" style="margin:0;padding:0"><table class="stations"><thead><tr><th>Station</th><th>Distance</th><th>Altitude</th><th title="Hiver exceptionnel">Exc.</th><th title="Hiver rigoureux non exceptionnel">Rig.</th></tr></thead><tbody>${c.map(ligne).join("")}</tbody></table></div>`;
+  $("#gelStations").innerHTML = `<div class="table-defile" style="margin:0;padding:0"><table class="stations"><thead><tr><th>Station</th>${avecDistance ? "<th>Distance</th>" : ""}<th>Altitude</th><th title="Hiver exceptionnel">Exc.</th><th title="Hiver rigoureux non exceptionnel">Rig.</th></tr></thead><tbody>${c.map(ligne).join("")}</tbody></table></div>`;
 }
 function remplirGel() {
   const g = E.gel, s = stationCourante(), v = valeursStation(s, g.periode);

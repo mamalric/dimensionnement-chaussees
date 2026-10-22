@@ -10,6 +10,7 @@
 - Question de l'utilisateur : pourquoi les courbes semblent "cassées" ? Les sauts aux interfaces sont physiques (εZ et contraintes horizontales changent avec le module ; σZ et, sur interface collée, les déformations horizontales restent continues) ; ils sont désormais reliés en pointillé, comme dans Alizé, et expliqués dans le rapport.
 - Défaut corrigé : depuis la version 3, le dernier calcul mémorisé n'était plus repris à l'ouverture (la vérification des stations de gel était appelée avant que leur index existe) ; la reprise se fait maintenant à la fin du script.
 - Ajout : champ Rédacteur dans le projet, repris des projets Alizé (NameAuthor).
+- Retour de l'utilisateur : la dernière colonne (Rig., hiver rigoureux non exceptionnel) du tableau des stations de gel était coupée, la table débordant de sa colonne. La colonne Distance, vide sans commune, n'est plus affichée dans ce cas ; les noms de station passent à la ligne, les colonnes de chiffres prennent leur largeur minimale. Vérifié à 1500, 1000 et 375 px de large : plus de défilement horizontal.
 - Demande de l'utilisateur : détailler les changements de couche sur le profil en profondeur de l'écran comme dans la note. Le profil cote désormais les faces des couches (en gras, en cm), nomme chaque couche avec son épaisseur et son module, indique la nature de chaque interface, relie les sauts en pointillé, et part de la surface (calculée exactement). Étiquettes décalées avec un trait de rappel quand des couches minces se suivent.
 
 ## 2026-10-22, version 5 : résultats présentés comme Alizé
