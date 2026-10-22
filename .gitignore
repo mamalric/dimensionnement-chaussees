@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Node
+node_modules/
+.parcel-cache/
+.next/
+out/
+
+# IDE et système
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets et environnements locaux
+.env
+.env.*
+*.local
+.claude/
