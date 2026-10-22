@@ -11,8 +11,8 @@ const calcul = bloc("calcul");
 const ctx = { console, Math, JSON, Object, Array, Number, String, Set, Map, Infinity, NaN, isFinite, parseFloat, Float64Array, Error };
 vm.createContext(ctx);
 vm.runInContext([bloc("moteur"), bloc("donnees"), calcul, bloc("gel")].join("\n").replace(/"use strict";/g, "")
-  + "\nthis.api = { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE };", ctx);
-const { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE } = ctx.api;
+  + "\nthis.api = { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF };", ctx);
+const { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF } = ctx.api;
 
 let echecs = 0, controles = 0;
 function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
@@ -192,9 +192,23 @@ function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
   verifier("guide 1994 (GEL1D, lu sur la figure VI.5.8), IA pour QPF = 8,7", indice(r), 298, 0.02);
 }
 
-// 7. Fractile de la loi normale
+// 7. Indices de gel des stations Météo-France embarqués : calcul sur 1951-1997 comparé au catalogue de 1998
 {
-  console.log("\n7. Fractile u du risque");
+  console.log("\n7. Indices de gel des stations (calcul 1951-1997 contre catalogue de 1998)");
+  const avecCat = STATIONS_MF.filter(r => r[12] != null && r[6]);
+  const ecarts = avecCat.map(r => [Math.abs(r[7] - r[12]), Math.abs(r[8] - r[13])]);
+  const mediane = v => { const t = [...v].sort((a, b) => a - b); return t[Math.floor(t.length / 2)]; };
+  verifier("stations du catalogue retrouvées dans les données Météo-France", avecCat.length, 83, 0, 10);
+  verifier("écart médian sur l'hiver exceptionnel (°C·jour)", mediane(ecarts.map(e => e[0])), 0, 0, 10);
+  verifier("écart médian sur l'hiver rigoureux non exceptionnel (°C·jour)", mediane(ecarts.map(e => e[1])), 0, 0, 10);
+  const dijon = STATIONS_MF.find(r => r[0] === "21473001");
+  verifier("Dijon-Longvic, hiver exceptionnel calculé (catalogue 200)", dijon[7], 200, 0, 5);
+  verifier("Dijon-Longvic, hiver rigoureux non exceptionnel calculé (catalogue 130)", dijon[8], 130, 0, 5);
+}
+
+// 8. Fractile de la loi normale
+{
+  console.log("\n8. Fractile u du risque");
   verifier("u(5 %)", fractile(0.05), -1.644854, 1e-6);
   verifier("u(25 %)", fractile(0.25), -0.674490, 1e-6);
   verifier("u(1 %)", fractile(0.01), -2.326348, 1e-6);
