@@ -1,5 +1,5 @@
 // Vérification du moteur de calcul, sans navigateur : node verifier-moteur.js
-// Les scripts "moteur" et "donnees" et le script de calcul sont extraits de index.html et exécutés tels quels,
+// Les scripts de calcul ("moteur", "donnees", "calcul", "gel") sont extraits de index.html et exécutés tels quels,
 // si bien que c'est bien le code publié qui est contrôlé.
 "use strict";
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -10,9 +10,9 @@ const bloc = id => scripts.find(s => s[1] === id)[2];
 const calcul = bloc("calcul");
 const ctx = { console, Math, JSON, Object, Array, Number, String, Set, Map, Infinity, NaN, isFinite, parseFloat, Float64Array, Error };
 vm.createContext(ctx);
-vm.runInContext([bloc("moteur"), bloc("donnees"), calcul].join("\n").replace(/"use strict";/g, "")
-  + "\nthis.api = { burmister, calculer, optimiser, admissible, fractile, MAT, trafic };", ctx);
-const { burmister, calculer, optimiser, fractile } = ctx.api;
+vm.runInContext([bloc("moteur"), bloc("donnees"), calcul, bloc("gel")].join("\n").replace(/"use strict";/g, "")
+  + "\nthis.api = { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE };", ctx);
+const { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE } = ctx.api;
 
 let echecs = 0, controles = 0;
 function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
@@ -149,9 +149,52 @@ function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
   }
 }
 
-// 6. Fractile de la loi normale
+// 6. Gel-dégel : quantités de gel, apport mécanique, calcul thermique (NF P98-086 annexe H)
+//    Références : guide de 1994 (exemple VI.5.3), manuel Alizé-LCPC 1.5 (figures 9.7 et 10.8),
+//    note de l'Université Gustave Eiffel sur la vérification au gel par Alizé-LCPC (2023), Alizé 2.
 {
-  console.log("\n6. Fractile u du risque");
+  console.log("\n6. Gel-dégel");
+  let q = quantitesGel({ sol: "SGpSGt", pSGp: 0.38, pSGt: 0.95, hp: 15, hn: 28, an: "BC" });
+  verifier("Alizé 1.5 (fig. 10.8), Qg sur SGp de 15 cm et SGt", q.qg, 2.24, 0.003);
+  verifier("Alizé 1.5 (fig. 10.8), Qng de 28 cm de sols B ou C", q.qng, 2.68, 0.003);
+  q = quantitesGel({ sol: "SGt", pSGt: 0.4, hn: 30, an: "CVSCSL" });
+  verifier("Alizé 1.5 (fig. 9.7), Qg pour p = 0,4", q.qg, 2.5, 1e-9);
+  verifier("Alizé 1.5 (fig. 9.7), Qng de 30 cm de cendres volantes", q.qng, 3.83, 0.002);
+  q = quantitesGel({ sol: "SGp", pSGp: 0.3, hn: 50, an: "D" });
+  verifier("guide 1994, Qg pour p = 0,3", q.qg, 3.33, 0.002);
+  verifier("guide 1994, Qng de 50 cm de D21", q.qng, 5.0, 1e-9);
+  const gel = { sol: "SGp", pSGp: 0.3, hn: 50, an: "D", qm: true };
+  const etatGel = (couches, pf) => ({
+    trafic: { direct: true, voie: "rase", mja: null, p: 20, tau: 0, loi: "geo", ne: 1e6, cam: { bitumineux: null, hydraulique: null, sol: null } },
+    hyp: { risqueMB: null, risqueMTLH: null, theta: 15, charge: "jumelage", q: 0.662, a: 0.125, d: 0.375, coefA: "auto" },
+    couches: couches.map(([mat, h]) => ({ mat, h, E: null, nu: null, itf: "collee", p: {} })), pf: { classe: "perso", E: pf, nu: 0.35 }, gel
+  });
+  // Alizé 2, cas 1 (fiche 26 du catalogue) : couche dégelée de 2,1 cm sous BBSG 8 / GB3 13 / GNT 20 sur PF3
+  const E1 = etatGel([["BBSG2", 8], ["GB3", 13], ["GNT1", 20]], 120);
+  const m = apportMecanique(E1, preparer(E1));
+  verifier("Alizé 2 cas 1, QM (couche dégelée e / 10)", m.qm, 0.21, 0.03);
+  // Calcul thermique : séries publiées d'Alizé 2 (front de gel, température et quantité de gel à la plate-forme)
+  const TH = THERMIQUE, c = (k, h) => ({ h, ...TH[k] });
+  const indice = (r) => r.IsAdmissible / 0.7 + 10;
+  let r = propagationGel([c("bb", 0.08), c("gb", 0.13), c("gnt", 0.20)], TH.solA, { qpf: 8.54, dz: 0.01 });
+  verifier("Alizé 2 cas 1, IA pour QPF = 8,54", indice(r), 356.0, 0.003);
+  for (const [j, front, tpf, qq] of [[20, 0.561, -1.398, 3.532], [40, 0.706, -2.180, 7.016], [60, 0.823, -2.598, 9.866]]) {
+    const p = r.serie.reduce((x, y) => Math.abs(y.j - j) < Math.abs(x.j - j) ? y : x);
+    verifier(`Alizé 2 cas 1, jour ${j} : front de gel`, p.front, front, 0, 0.01);
+    verifier(`Alizé 2 cas 1, jour ${j} : température de la plate-forme`, p.Tpf, tpf, 0, 0.03);
+    verifier(`Alizé 2 cas 1, jour ${j} : quantité de gel à la plate-forme`, p.Qpf, qq, 0, 0.03);
+  }
+  r = propagationGel([c("bb", 0.04), c("gb", 0.08)], TH.solA, { qpf: 2.5, dz: 0.01 });
+  verifier("Alizé 2 cas 2, IA pour QPF = 2,5", indice(r), 37.8, 0.006);
+  r = propagationGel([c("bb", 0.07), c("gb", 0.11), c("gc", 0.18), c("gnt", 0.35)], TH.solA, { qpf: 5.37, dz: 0.01 });
+  verifier("Alizé 1.5 (fig. 10.8), IA pour QPF = 5,37 (Alizé 2 donne environ 1 % de plus)", indice(r), 377.2, 0.03);
+  r = propagationGel([c("bb", 0.06), c("gb", 0.26)], { rho: 1330, w: 32, lng: 1.1, lg: 1.8 }, { qpf: 8.7, dz: 0.01 });
+  verifier("guide 1994 (GEL1D, lu sur la figure VI.5.8), IA pour QPF = 8,7", indice(r), 298, 0.02);
+}
+
+// 7. Fractile de la loi normale
+{
+  console.log("\n7. Fractile u du risque");
   verifier("u(5 %)", fractile(0.05), -1.644854, 1e-6);
   verifier("u(25 %)", fractile(0.25), -0.674490, 1e-6);
   verifier("u(1 %)", fractile(0.01), -2.326348, 1e-6);

@@ -172,12 +172,9 @@ header .actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-c
 
 .wrap{padding:18px 22px 40px;max-width:1440px;margin:0 auto}
 
-/* ---- disposition : données à gauche, structure et vérification à droite */
-main.cols{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:18px;align-items:start}
-main.cols > div{min-width:0}
-@media (max-width: 1080px){ main.cols{grid-template-columns:minmax(0,1fr)} }
+@media (max-width: 900px){ header{position:static} }
 @media (max-width: 600px){
-  .wrap{padding:14px 12px 30px} header{padding:10px 12px;position:static} header .sub{display:none}
+  .wrap{padding:14px 12px 30px} header{padding:10px 12px} header .sub{display:none}
   /* Sur téléphone, les boutons de l'en-tête ne gardent que leur icône (le titre au survol reste) */
   header .actions .btn{font-size:0;gap:0;padding:7px 9px}
 }
@@ -343,6 +340,66 @@ table.solli td.crit{font-weight:700;color:var(--primaire-encre);box-shadow:inset
 .legende i{display:inline-block;width:18px;height:0;border-top:2.5px solid;vertical-align:middle;margin-right:6px}
 .legende i.tirets{border-top-style:dashed}
 
+/* ---- onglets : une ligne sous le titre, dans l'en-tête fixe ; le résumé des verdicts à droite */
+.onglets{flex-basis:100%;display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:2px 0 -12px;padding-top:2px}
+.onglets [role=tab]{
+  display:inline-flex;align-items:center;gap:7px;background:transparent;border:none;border-bottom:2.5px solid transparent;
+  padding:9px 12px 10px;font:inherit;font-size:13.5px;font-weight:600;color:var(--encre-2);cursor:pointer;
+  transition:color var(--vitesse),border-color var(--vitesse),background-color var(--vitesse);border-radius:var(--rayon-s) var(--rayon-s) 0 0;
+}
+.onglets [role=tab]:hover{color:var(--encre);background:var(--papier-2)}
+.onglets [role=tab][aria-selected="true"]{color:var(--primaire-encre);border-bottom-color:var(--primaire)}
+.onglets .espace{flex:1}
+.resume{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:4px}
+.resume-pastille{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid;border-radius:14px;padding:3px 10px 3px 7px;
+  font:inherit;font-size:12px;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums;background:transparent;
+}
+.resume-pastille.ok{background:var(--primaire-fond);border-color:var(--primaire-bord);color:var(--primaire-encre)}
+.resume-pastille.ko{background:var(--haute-fond);border-color:var(--haute);color:var(--haute)}
+.resume-pastille.attente{background:var(--papier-2);border-color:var(--ligne);color:var(--discret)}
+@media (max-width: 600px){ .onglets [role=tab]{padding:8px 8px 9px;font-size:12.5px;gap:5px} .onglets{margin-bottom:-10px} }
+
+.grille-donnees > div,.grille-gel > div{min-width:0}
+.grille-donnees{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.grille-gel{display:grid;grid-template-columns:minmax(300px,440px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width: 980px){ .grille-donnees,.grille-gel{grid-template-columns:minmax(0,1fr)} }
+#gelCourbe{max-width:720px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--ligne);border-top-color:var(--primaire);border-radius:50%;animation:tourne .8s linear infinite;flex:none}
+@keyframes tourne{to{transform:rotate(360deg)}}
+
+/* ---- bouton (i) et panneau d'aide, repris de la Calculette ECS et des Températures de référence.
+   L'API Popover place le panneau dans le calque supérieur ; repli par classe sinon. */
+.btn-aide{
+  appearance:none;width:17px;height:17px;padding:0;margin-left:5px;vertical-align:-3px;
+  border:1px solid var(--ligne);border-radius:50%;background:var(--papier);color:var(--discret);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:color var(--vitesse),border-color var(--vitesse),background-color var(--vitesse);
+}
+th .btn-aide{width:15px;height:15px;margin-left:4px}
+.btn-aide .ico{vertical-align:0}
+.btn-aide:hover{color:var(--primaire-encre);border-color:var(--primaire);background:var(--primaire-fond)}
+.btn-aide[aria-expanded="true"]{color:var(--sur-primaire);border-color:var(--primaire);background:var(--primaire)}
+.btn-aide:focus-visible{outline:none;box-shadow:0 0 0 3px var(--anneau)}
+#popAide{
+  position:fixed;margin:0;inset:auto;width:max-content;
+  max-width:min(400px,calc(100vw - 24px));
+  padding:12px 14px;border:1px solid var(--ligne);border-radius:var(--rayon);
+  background:var(--papier);color:var(--encre-2);text-transform:none;letter-spacing:normal;
+  box-shadow:0 2px 6px rgba(0,0,0,.10),0 12px 32px rgba(0,0,0,.16);
+  font-size:12.5px;font-weight:400;line-height:1.55;overflow:auto;
+}
+#popAide::backdrop{background:transparent}
+#popAide .aide-titre{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-weight:700;color:var(--encre);font-size:12.5px}
+#popAide p{margin:0 0 7px}
+#popAide p:last-child{margin-bottom:0}
+#popAide table{margin:4px 0 9px;font-size:12px;width:auto}
+#popAide th,#popAide td{padding:3px 7px;text-align:right}
+#popAide th:first-child,#popAide td:first-child{text-align:left}
+#popAide b{color:var(--encre)}
+#popAide.sans-popover{display:none}
+#popAide.sans-popover.ouvert{display:block}
+
 /* ---- panneau "À propos" (rouage), comme sur les autres outils B27 */
 .modale{
   border:none;padding:0;border-radius:var(--rayon);background:var(--papier);color:var(--encre);
@@ -400,13 +457,14 @@ table.facteurs td:nth-child(2){white-space:nowrap}
   body{font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   header{position:static;box-shadow:none;padding:0 0 8px}
   /* La note reprend les données sous forme de tableaux : les panneaux de saisie restent à l'écran */
-  .noprint,main.cols > div:first-child,#panelStructure,#detailsAdm,.optim{display:none !important}
+  .noprint,.grille-donnees,#panelStructure,#detailsAdm,.optim,#popAide,.btn-aide{display:none !important}
+  .onglet[hidden]{display:block !important}
+  .grille-gel{display:block}
   .impression{display:block}
   .imp-adm-grille{display:grid}
   #panelVerif{break-inside:auto}
   .verif-grille{break-inside:avoid}
   .wrap{padding:0;max-width:none}
-  main.cols{display:block}
   .panel{break-inside:avoid;box-shadow:none;border:1px solid var(--ligne);margin-bottom:10px}
   .panel.long{break-inside:auto}
   .panel h2{padding:7px 12px;font-size:13px}
@@ -437,7 +495,17 @@ table.facteurs td:nth-child(2){white-space:nowrap}
     <button type="button" class="bouton-icone" id="btnTheme" aria-label="Changer de thème"></button>
     <button type="button" class="bouton-icone" id="btnApropos" data-ico="engrenage" aria-label="À propos et sources" title="À propos de l'outil"></button>
   </div>
+  <nav class="onglets noprint" role="tablist" aria-label="Parties du calcul">
+    <button type="button" role="tab" id="tab-donnees" data-onglet="donnees" aria-controls="onglet-donnees" data-ico="camion">Données</button>
+    <button type="button" role="tab" id="tab-structure" data-onglet="structure" aria-controls="onglet-structure" data-ico="couches">Structure</button>
+    <button type="button" role="tab" id="tab-detail" data-onglet="detail" aria-controls="onglet-detail" data-ico="tableau">Détail du calcul</button>
+    <button type="button" role="tab" id="tab-gel" data-onglet="gel" aria-controls="onglet-gel" data-ico="flocon">Gel-dégel</button>
+    <span class="espace"></span>
+    <div class="resume" id="resume" aria-live="polite"></div>
+  </nav>
 </header>
+
+<div id="popAide" popover="auto" role="tooltip"></div>
 
 <dialog id="dlgApropos" class="modale noprint" aria-labelledby="dlgAproposTitre">
   <div class="modale-tete">
@@ -450,8 +518,10 @@ table.facteurs td:nth-child(2){white-space:nowrap}
 
 <div class="wrap">
   <section class="panel impression" id="impDonnees"></section>
-  <main class="cols">
-    <div>
+
+  <div class="onglet" id="onglet-donnees" data-onglet="donnees" role="tabpanel" aria-labelledby="tab-donnees">
+    <div class="grille-donnees">
+      <div>
       <section class="panel">
         <h2 data-ico="dossier">Projet</h2>
         <div class="body grid2">
@@ -464,20 +534,20 @@ table.facteurs td:nth-child(2){white-space:nowrap}
         <h2 data-ico="camion">Trafic</h2>
         <div class="body">
           <div class="fld" style="margin-bottom:12px">
-            <label for="typeVoie">Type de voie</label>
+            <label for="typeVoie" data-aide="voie">Type de voie</label>
             <select id="typeVoie"></select>
           </div>
-          <label class="chkligne noprint" style="margin-bottom:12px"><input type="checkbox" id="neDirect"> <span>Saisir directement le trafic cumulé NE</span></label>
+          <label class="chkligne noprint" style="margin-bottom:12px"><input type="checkbox" id="neDirect"> <span data-aide="nedirect">Saisir directement le trafic cumulé NE</span></label>
           <div id="blocTrafic">
             <div class="grid2">
               <div class="fld pleine">
-                <label for="mja">MJA : poids lourds par jour, voie la plus chargée, à la mise en service</label>
+                <label for="mja" data-aide="mja">MJA : poids lourds par jour, voie la plus chargée, à la mise en service</label>
                 <div class="ligne"><input type="number" id="mja" min="0" step="1" inputmode="numeric"><span class="unite">PL/j</span></div>
               </div>
-              <div class="fld"><label for="duree">Durée de dimensionnement</label><div class="ligne"><input type="number" id="duree" min="1" max="60" step="1"><span class="unite">ans</span></div></div>
-              <div class="fld"><label for="tau">Taux de croissance</label><div class="ligne"><input type="number" id="tau" min="-5" max="15" step="0.5"><span class="unite">%/an</span></div></div>
+              <div class="fld"><label for="duree" data-aide="duree">Durée de dimensionnement</label><div class="ligne"><input type="number" id="duree" min="1" max="60" step="1"><span class="unite">ans</span></div></div>
+              <div class="fld"><label for="tau" data-aide="tau">Taux de croissance</label><div class="ligne"><input type="number" id="tau" min="-5" max="15" step="0.5"><span class="unite">%/an</span></div></div>
               <div class="fld pleine">
-                <span class="intitule">Loi de croissance</span>
+                <span class="intitule" data-aide="loi">Loi de croissance</span>
                 <div class="segments" id="loi" role="group" aria-label="Loi de croissance">
                   <button type="button" data-v="geo" aria-pressed="true">Géométrique</button>
                   <button type="button" data-v="arith" aria-pressed="false">Arithmétique</button>
@@ -486,15 +556,15 @@ table.facteurs td:nth-child(2){white-space:nowrap}
             </div>
             <dl class="det" id="traficDet"></dl>
             <div class="grid3" style="margin-top:12px">
-              <div class="fld"><label for="camBitu" title="Coefficient d'agressivité moyen pour la fatigue des matériaux bitumineux">CAM bitumineux</label><input type="number" id="camBitu" min="0" step="0.05"></div>
-              <div class="fld"><label for="camHydro" title="Coefficient d'agressivité moyen pour la fatigue des matériaux traités aux liants hydrauliques et des bétons">CAM hydrauliques</label><input type="number" id="camHydro" min="0" step="0.05"></div>
-              <div class="fld"><label for="camSol" title="Coefficient d'agressivité moyen pour la déformation des matériaux non liés et du sol">CAM sol et GNT</label><input type="number" id="camSol" min="0" step="0.05"></div>
+              <div class="fld"><label for="camBitu" data-aide="cam">CAM bitumineux</label><input type="number" id="camBitu" min="0" step="0.05"></div>
+              <div class="fld"><label for="camHydro" data-aide="cam">CAM hydrauliques</label><input type="number" id="camHydro" min="0" step="0.05"></div>
+              <div class="fld"><label for="camSol" data-aide="cam">CAM sol et GNT</label><input type="number" id="camSol" min="0" step="0.05"></div>
             </div>
             <p class="hint" id="camHint"></p>
           </div>
           <div id="blocNE" hidden>
             <div class="fld">
-              <label for="neSaisi">Trafic cumulé NE, en essieux équivalents de 130 kN</label>
+              <label for="neSaisi" data-aide="ne">Trafic cumulé NE, en essieux équivalents de 130 kN</label>
               <div class="ligne"><input type="number" id="neSaisi" min="0" step="1000"><span class="unite">essieux</span></div>
               <p class="hint">La même valeur sert aux trois critères. Pour la classe de trafic, saisir aussi le MJA si on le connaît.</p>
             </div>
@@ -502,37 +572,38 @@ table.facteurs td:nth-child(2){white-space:nowrap}
           <dl class="det" id="neDet"></dl>
         </div>
       </section>
-
+      </div>
+      <div>
       <section class="panel">
         <h2 data-ico="jauge">Hypothèses de calcul</h2>
         <div class="body">
           <div class="grid2">
             <div class="fld">
-              <label for="risqueMB">Risque, bitumineux</label>
+              <label for="risqueMB" data-aide="risque">Risque, bitumineux</label>
               <div class="ligne"><input type="number" id="risqueMB" min="0.1" max="50" step="0.5"><span class="unite">%</span></div>
             </div>
             <div class="fld">
-              <label for="risqueMTLH">Risque, hydrauliques et bétons</label>
+              <label for="risqueMTLH" data-aide="risque">Risque, hydrauliques et bétons</label>
               <div class="ligne"><input type="number" id="risqueMTLH" min="0.1" max="50" step="0.5"><span class="unite">%</span></div>
             </div>
             <p class="hint pleine" id="risqueHint" style="margin-top:-4px"></p>
             <div class="fld">
-              <label for="theta">Température équivalente</label>
+              <label for="theta" data-aide="theta">Température équivalente</label>
               <div class="ligne"><input type="number" id="theta" min="-10" max="40" step="1"><span class="unite">°C</span></div>
             </div>
             <div class="fld pleine">
-              <label for="charge">Charge</label>
+              <label for="charge" data-aide="charge">Charge</label>
               <select id="charge">
                 <option value="jumelage">Jumelage de référence : 65 kN, essieu de 130 kN</option>
                 <option value="simple">Roue simple</option>
                 <option value="perso">Jumelage personnalisé</option>
               </select>
             </div>
-            <div class="fld"><label for="pression">Pression de contact q</label><div class="ligne"><input type="number" id="pression" min="0.05" max="3" step="0.001"><span class="unite">MPa</span></div></div>
-            <div class="fld"><label for="rayon">Rayon du disque a</label><div class="ligne"><input type="number" id="rayon" min="0.02" max="0.5" step="0.001"><span class="unite">m</span></div></div>
-            <div class="fld" id="fldEntraxe"><label for="entraxe">Entraxe des roues d</label><div class="ligne"><input type="number" id="entraxe" min="0.1" max="2" step="0.005"><span class="unite">m</span></div></div>
+            <div class="fld"><label for="pression" data-aide="geometrie">Pression de contact q</label><div class="ligne"><input type="number" id="pression" min="0.05" max="3" step="0.001"><span class="unite">MPa</span></div></div>
+            <div class="fld"><label for="rayon" data-aide="geometrie">Rayon du disque a</label><div class="ligne"><input type="number" id="rayon" min="0.02" max="0.5" step="0.001"><span class="unite">m</span></div></div>
+            <div class="fld" id="fldEntraxe"><label for="entraxe" data-aide="geometrie">Entraxe des roues d</label><div class="ligne"><input type="number" id="entraxe" min="0.1" max="2" step="0.005"><span class="unite">m</span></div></div>
             <div class="fld">
-              <label for="coefA">Sol : coefficient A</label>
+              <label for="coefA" data-aide="coefA">Sol : coefficient A</label>
               <select id="coefA">
                 <option value="auto">Selon NE</option>
                 <option value="0.012">12 000 µdef</option>
@@ -543,22 +614,24 @@ table.facteurs td:nth-child(2){white-space:nowrap}
           <p class="hint" id="chargeHint"></p>
         </div>
       </section>
+      </div>
     </div>
+  </div>
 
-    <div>
+  <div class="onglet" id="onglet-structure" data-onglet="structure" role="tabpanel" aria-labelledby="tab-structure">
       <section class="panel" id="panelStructure">
         <h2 data-ico="couches">Structure</h2>
         <div class="body">
           <div class="barre-outils noprint">
             <div class="fld">
-              <label for="modele">Partir d'une structure type</label>
+              <label for="modele" data-aide="modele">Partir d'une structure type</label>
               <select id="modele"></select>
             </div>
             <button type="button" class="btn sec" id="btnAjouter" data-ico="plus">Ajouter une couche</button>
           </div>
           <div class="table-defile">
             <table class="couches">
-              <thead><tr><th>Couche</th><th>Épaisseur</th><th>Module E</th><th>ν</th><th>Interface en dessous</th><th class="noprint"></th></tr></thead>
+              <thead><tr><th data-aide="materiau">Couche</th><th data-aide="epaisseur">Épaisseur</th><th data-aide="module">Module E</th><th data-aide="poisson">ν</th><th data-aide="interface">Interface en dessous</th><th class="noprint"></th></tr></thead>
               <tbody id="corpsCouches"></tbody>
             </table>
           </div>
@@ -576,17 +649,16 @@ table.facteurs td:nth-child(2){white-space:nowrap}
             <div>
               <div class="table-defile">
                 <table class="criteres">
-                  <thead><tr><th>Critère</th><th>Calculé</th><th>Admissible</th><th>Taux</th></tr></thead>
+                  <thead><tr><th data-aide="criteres">Critère</th><th>Calculé</th><th>Admissible</th><th data-aide="taux">Taux</th></tr></thead>
                   <tbody id="corpsCriteres"></tbody>
                 </table>
               </div>
-              <div id="detailsAdm"></div>
             </div>
           </div>
           <div class="impression imp-adm-grille" id="impAdm"></div>
           <div class="optim noprint">
             <div class="fld">
-              <label for="coucheOptim">Ajuster l'épaisseur de</label>
+              <label for="coucheOptim" data-aide="optim">Ajuster l'épaisseur de</label>
               <select id="coucheOptim"></select>
             </div>
             <div class="fld" style="flex:0 0 130px">
@@ -598,11 +670,11 @@ table.facteurs td:nth-child(2){white-space:nowrap}
           </div>
         </div>
       </section>
-    </div>
-  </main>
+  </div>
 
+  <div class="onglet" id="onglet-detail" data-onglet="detail" role="tabpanel" aria-labelledby="tab-detail">
   <section class="panel long">
-    <h2 data-ico="tableau">Sollicitations calculées
+    <h2 data-ico="tableau"><span data-aide="sollicitations">Sollicitations calculées</span>
       <span class="droite noprint">
         <span class="segments" id="posSolli" role="group" aria-label="Position">
           <button type="button" data-v="max" aria-pressed="true">Maximum</button>
@@ -621,7 +693,7 @@ table.facteurs td:nth-child(2){white-space:nowrap}
       <p class="hint" id="solliHint"></p>
       <div class="profil-zone noprint">
         <div class="ligne" style="flex-wrap:wrap;gap:10px">
-          <span class="intitule" style="font-size:12px;font-weight:600;color:var(--encre-2)">Profil en profondeur</span>
+          <span class="intitule" style="font-size:12px;font-weight:600;color:var(--encre-2)" data-aide="profil">Profil en profondeur</span>
           <span class="segments" id="grandeurProfil" role="group" aria-label="Grandeur tracée">
             <button type="button" data-v="eT" aria-pressed="true">ε<sub>T</sub></button>
             <button type="button" data-v="eL" aria-pressed="false">ε<sub>L</sub></button>
@@ -635,10 +707,66 @@ table.facteurs td:nth-child(2){white-space:nowrap}
       </div>
     </div>
   </section>
+
+    <section class="panel noprint">
+      <h2 data-ico="livre"><span data-aide="admissibles">Valeurs admissibles, facteur par facteur</span></h2>
+      <div class="body"><div id="detailsAdm"></div></div>
+    </section>
+  </div>
+
+  <div class="onglet" id="onglet-gel" data-onglet="gel" role="tabpanel" aria-labelledby="tab-gel">
+    <div class="grille-gel">
+      <div>
+        <section class="panel noprint">
+          <h2 data-ico="repere">Indice de gel de référence</h2>
+          <div class="body grid2">
+            <div class="fld pleine"><label for="gelStation" data-aide="station">Station météorologique</label><select id="gelStation"></select></div>
+            <div class="fld pleine"><label for="gelHiver" data-aide="hiver">Hiver de référence</label>
+              <select id="gelHiver"><option value="HRNE">Hiver rigoureux non exceptionnel (décennal)</option><option value="HE">Hiver exceptionnel (le plus rigoureux de 1951-1997)</option></select></div>
+            <div class="fld"><label for="gelIR" data-aide="ir">Indice de gel IR</label><div class="ligne"><input type="number" id="gelIR" min="0" max="1000" step="5"><span class="unite">°C·jour</span></div></div>
+            <p class="hint pleine" id="gelIRHint" style="margin-top:-4px"></p>
+          </div>
+        </section>
+        <section class="panel noprint">
+          <h2 data-ico="couches">Plate-forme et sensibilité au gel</h2>
+          <div class="body grid2">
+            <div class="fld pleine"><label for="gelSol" data-aide="gelivite">Sol support sous la plate-forme</label>
+              <select id="gelSol">
+                <option value="SGp">Peu gélif (SGp)</option>
+                <option value="SGt">Très gélif (SGt)</option>
+                <option value="SGpSGt">Peu gélif sur très gélif (SGp sur SGt)</option>
+                <option value="SGn">Non gélif (SGn) : pas de vérification</option>
+              </select></div>
+            <div class="fld" id="fldPSGp"><label for="gelPSGp" data-aide="pente">Pente p du sol peu gélif</label><div class="ligne"><input type="number" id="gelPSGp" min="0" max="2" step="0.01"><span class="unite">mm/(°C·h)<sup>1/2</sup></span></div></div>
+            <div class="fld" id="fldPSGt"><label for="gelPSGt" data-aide="pente">Pente p du sol très gélif</label><div class="ligne"><input type="number" id="gelPSGt" min="0" max="2" step="0.01"><span class="unite">mm/(°C·h)<sup>1/2</sup></span></div></div>
+            <div class="fld" id="fldHp"><label for="gelHp" data-aide="hp">Épaisseur peu gélive h<sub>p</sub></label><div class="ligne"><input type="number" id="gelHp" min="0" max="100" step="1"><span class="unite">cm</span></div></div>
+            <div class="fld"><label for="gelHn" data-aide="hn">Non gélifs h<sub>n</sub></label><div class="ligne"><input type="number" id="gelHn" min="0" max="200" step="1"><span class="unite">cm</span></div></div>
+            <div class="fld"><label for="gelAn" data-aide="an">Nature des non gélifs</label><select id="gelAn"></select></div>
+            <label class="chkligne pleine"><input type="checkbox" id="gelQm"> <span data-aide="qm">Compter l'apport mécanique Q<sub>M</sub> de la chaussée</span></label>
+          </div>
+        </section>
+      </div>
+      <div>
+        <section class="panel" id="panelGel">
+          <h2 data-ico="flocon">Vérification au gel-dégel</h2>
+          <div class="body">
+            <div class="verdict attente" id="gelVerdict"><span>Calcul en cours...</span></div>
+            <dl class="det" id="gelDet"></dl>
+            <div class="noprint" id="gelGraphe">
+              <p class="params-titre" style="margin:14px 0 4px"><span data-aide="courbe">Protection thermique apportée par la chaussée</span></p>
+              <svg class="profil" id="gelCourbe" viewBox="0 0 600 330" role="img" aria-label="Indice de gel en surface en fonction de la quantité de gel transmise à la plate-forme"></svg>
+              <div class="legende" id="gelLegende"></div>
+            </div>
+            <div id="gelNotes"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
 </div>
 
 <footer class="pied">
-  <div>Outil d'aide au dimensionnement à usage professionnel, qui ne remplace ni le jugement de l'ingénieur ni le catalogue des structures types. Il ne traite pas la vérification au gel-dégel ni les renforcements de chaussées existantes. Méthode, valeurs des matériaux et sources : rouage en haut à droite.</div>
+  <div>Outil d'aide au dimensionnement à usage professionnel, qui ne remplace ni le jugement de l'ingénieur ni le catalogue des structures types. Il ne traite pas les renforcements de chaussées existantes. Méthode, valeurs des matériaux et sources : rouage en haut à droite.</div>
   <div class="noprint">Tout le calcul se fait dans le navigateur : rien n'est envoyé ni conservé ailleurs, hormis le dernier calcul et le choix du thème, gardés dans ce navigateur.</div>
 </footer>
 
@@ -1337,13 +1465,208 @@ function itfUsuelle(haut, bas) {
 }
 </script>
 
+<script id="gel">
+"use strict";
+// ---------- Moteur thermique : propagation du gel en 1D (NF P98-086 annexe H, méthode LCPC-SETRA) ----------
+// Chaussée en couches jusqu'au niveau de la plate-forme, sol semi-infini borné à 40 m sous la plate-forme.
+// Température initiale : 1 °C en surface, linéaire jusqu'à 14 °C à 10 m sous la plate-forme, puis constante.
+// Surface : hyperbole de 1 °C vers -5 °C, pente initiale -0,833 °C/h ; fond : 14 °C.
+// Méthode enthalpique explicite en volumes finis : capacités ρ(836 + 4180 w) non gelé et ρ(836 + 2090 w)
+// gelé, chaleur latente ρ w × 334 kJ/kg, conductivité interpolée sur la fraction d'eau non gelée.
+const CHALEUR_LATENTE = 334000;
+function propagationGel(couches, sol, opts) {
+  opts = opts || {};
+  const jours = opts.jours ?? 60, dz0 = opts.dz ?? 0.01, qcible = opts.qpf ?? Infinity;
+  const zpf = couches.reduce((s, c) => s + c.h, 0), zfond = zpf + 40;
+  // Maillage : pas fin dans la chaussée et sur 2 m de sol, puis progression géométrique
+  const faces = [0], mats = [];
+  let z = 0;
+  for (const c of couches) {
+    const n = Math.max(1, Math.ceil(c.h / dz0 - 1e-9));
+    for (let i = 0; i < n; i++) { z += c.h / n; faces.push(z); mats.push(c); }
+  }
+  const ipf = mats.length;                      // première cellule du sol
+  let dz = dz0;
+  while (z < zfond - 1e-9) {
+    if (z > zpf + 2) dz = Math.min(dz * 1.12, 2);
+    const zn = Math.min(zfond, z + dz);
+    faces.push(zn); mats.push(sol); z = zn;
+  }
+  const N = mats.length;
+  const demi = new Float64Array(N), dzc = new Float64Array(N), Cng = new Float64Array(N), Cg = new Float64Array(N);
+  const L = new Float64Array(N), lng = new Float64Array(N), lg = new Float64Array(N), H = new Float64Array(N);
+  const T = new Float64Array(N), R = new Float64Array(N), flux = new Float64Array(N + 1);
+  let dtmax = Infinity;
+  for (let i = 0; i < N; i++) {
+    const m = mats[i], w = m.w / 100;
+    dzc[i] = faces[i + 1] - faces[i]; demi[i] = dzc[i] / 2;
+    Cng[i] = m.rho * (836 + 4180 * w); Cg[i] = m.rho * (836 + 2090 * w); L[i] = m.rho * w * CHALEUR_LATENTE;
+    lng[i] = m.lng; lg[i] = m.lg;
+    const zc = (faces[i] + faces[i + 1]) / 2, t0 = zc <= zpf + 10 ? 1 + 13 * zc / (zpf + 10) : 14;
+    H[i] = t0 >= 0 ? Cng[i] * t0 + L[i] : Cg[i] * t0;
+    dtmax = Math.min(dtmax, Math.min(Cg[i], Cng[i]) * dzc[i] * dzc[i] / (2 * Math.max(lng[i], lg[i])));
+  }
+  const tfin = jours * 86400, nPas = Math.ceil(tfin / (0.45 * dtmax)), dt = tfin / nPas, tau = 7.2 * 3600;
+  const serie = [], pasSerie = Math.max(1, Math.round(nPas / 240));
+  let Is = 0, Ipf = 0, iaIs = null, front = 0;
+  for (let p = 0; p <= nPas; p++) {
+    const t = p * dt, Ts = -5 + 6 / (1 + t / tau);
+    // Températures et résistances thermiques des demi-cellules
+    for (let i = 0; i < N; i++) {
+      const h = H[i], l = L[i];
+      let f;
+      if (h < 0) { T[i] = h / Cg[i]; f = 0; }
+      else if (h > l) { T[i] = (h - l) / Cng[i]; f = 1; }
+      else { T[i] = 0; f = l > 0 ? h / l : 1; }
+      R[i] = demi[i] / (lg[i] + f * (lng[i] - lg[i]));
+    }
+    // Température à la plate-forme : face entre la chaussée et le sol, pondérée par les résistances
+    const Tpf = ipf > 0 ? (T[ipf - 1] * R[ipf] + T[ipf] * R[ipf - 1]) / (R[ipf - 1] + R[ipf]) : Ts;
+    if (p % pasSerie === 0 || p === nPas) {
+      front = 0;
+      for (let i = 0; i < N; i++) { if (H[i] < L[i] || T[i] < 0) front = faces[i + 1]; else break; }
+      serie.push({ j: t / 86400, Is, Qpf: Math.sqrt(Ipf), Tpf, front });
+    }
+    if (p === nPas) break;
+    flux[0] = (Ts - T[0]) / R[0];
+    for (let i = 1; i < N; i++) flux[i] = (T[i - 1] - T[i]) / (R[i - 1] + R[i]);
+    flux[N] = (T[N - 1] - 14) / R[N - 1];
+    for (let i = 0; i < N; i++) H[i] += dt * (flux[i] - flux[i + 1]) / dzc[i];
+    // Indices de gel cumulés (°C.jour) en surface et à la plate-forme
+    const dIs = Ts < 0 ? -Ts * dt / 86400 : 0, dIpf = Tpf < 0 ? -Tpf * dt / 86400 : 0;
+    if (iaIs == null && dIpf > 0 && Math.sqrt(Ipf + dIpf) >= qcible) {
+      // Quantité de gel admissible atteinte pendant ce pas : interpolation linéaire en indice
+      const f = dIpf > 0 ? (qcible * qcible - Ipf) / dIpf : 0;
+      iaIs = Is + Math.max(0, Math.min(1, f)) * dIs;
+    }
+    Is += dIs; Ipf += dIpf;
+  }
+  return { serie, zpf, Is, Qpf: Math.sqrt(Ipf), front, IsAdmissible: iaIs };
+}
+
+// Caractéristiques thermiques de la NF P98-086 (annexe F) : masse volumique sèche (kg/m3), teneur en eau (%),
+// conductivités non gelée et gelée (W/m/°C). Le sol sous la plate-forme est le sol A de la méthode.
+const THERMIQUE = {
+  bb: { nom: "Béton bitumineux", rho: 2350, w: 1, lng: 2.00, lg: 2.10 },
+  gb: { nom: "Grave-bitume", rho: 2350, w: 1, lng: 1.90, lg: 1.90 },
+  eme: { nom: "Enrobé à module élevé", rho: 2390, w: 1, lng: 2.35, lg: 2.40 },
+  gl: { nom: "Grave-laitier", rho: 2150, w: 4, lng: 1.4, lg: 1.5 },
+  sl: { nom: "Sable-laitier", rho: 1900, w: 7, lng: 1.1, lg: 1.3 },
+  gc: { nom: "Grave-ciment", rho: 2250, w: 3, lng: 1.8, lg: 1.9 },
+  sc: { nom: "Sable-ciment", rho: 1900, w: 8, lng: 1.42, lg: 1.66 },
+  beton: { nom: "Béton", rho: 2300, w: 3, lng: 1.70, lg: 1.90 },
+  gnt: { nom: "Grave non traitée", rho: 2200, w: 4, lng: 1.80, lg: 2.00 },
+  solA: { nom: "Sol A", rho: 1300, w: 32, lng: 1.10, lg: 1.80 }
+};
+const THERMIQUE_MATERIAU = {
+  BBSG1: "bb", BBSG2: "bb", BBME1: "bb", BBME2: "bb", BBM: "bb", BBTM: "bb", GB2: "gb", GB3: "gb", GB4: "gb", EME1: "eme", EME2: "eme",
+  GCT3: "gc", GCT4: "gc", BCRT5: "gc", GLT2: "gl", GLT3: "gl", SCT2: "sc", SCT3: "sc", SLT2: "sl", SLT3: "sl",
+  BC5: "beton", BC5G: "beton", BC4: "beton", BC2: "beton", GNT1: "gnt", GNT2: "gnt", GNT3: "gnt", CDF: "gnt"
+};
+
+// Indices de gel atmosphériques de référence (°C.jour) des principales stations, période 1951-1997 :
+// [département, station, hiver exceptionnel, hiver rigoureux non exceptionnel]. Catalogue de 1998, annexe 2.
+const STATIONS_IR = [
+  ["01", "Ambérieu", 270, 175], ["02", "Saint-Quentin", 225, 110], ["03", "Vichy", 250, 115], ["04", "Saint-Auban", 80, 35],
+  ["05", "Embrun", 165, 95], ["06", "Nice", 0, 0], ["09", "Saint-Girons", 120, 35], ["10", "Romilly", 210, 110],
+  ["11", "Carcassonne", 85, 35], ["12", "Millau", 140, 65], ["13", "Marignane", 70, 15], ["14", "Caen", 115, 60],
+  ["16", "Cognac", 100, 35], ["17", "La Rochelle", 75, 30], ["18", "Bourges", 160, 70], ["21", "Dijon", 200, 130],
+  ["22", "Rostrenen", 85, 50], ["25", "Besançon", 220, 120], ["26", "Luz-la-Croix-Haute", 420, 275], ["26", "Montélimar", 105, 40],
+  ["27", "Evreux", 195, 115], ["28", "Chartres", 190, 100], ["29", "Brest", 20, 10], ["30", "Nîmes", 60, 20],
+  ["31", "Toulouse", 115, 40], ["33", "Bordeaux", 95, 40], ["34", "Montpellier", 55, 35], ["35", "Dinard", 65, 25],
+  ["35", "Rennes", 80, 35], ["36", "Chateauroux", 155, 75], ["37", "Tours", 120, 75], ["38", "Grenoble", 170, 145],
+  ["40", "Mont-de-Marsan", 100, 40], ["41", "Romorantin", 135, 100], ["42", "Saint-Etienne", 220, 110], ["43", "Le-Puy-Chadrac", 240, 130],
+  ["44", "Nantes", 75, 55], ["45", "Orléans", 170, 85], ["46", "Gourdon", 120, 45], ["47", "Agen", 110, 40],
+  ["49", "Angers", 100, 70], ["50", "La Hague", 15, 5], ["51", "Reims", 235, 105], ["52", "Langres", 325, 170],
+  ["52", "Saint-Dizier", 235, 100], ["54", "Nancy", 320, 155], ["55", "Bar-le-Duc", 340, 290], ["56", "Lorient", 40, 25],
+  ["57", "Metz", 290, 135], ["58", "Chateau-Chinon", 225, 115], ["58", "Nevers", 190, 110], ["59", "Dunkerque", 165, 65],
+  ["59", "Lille", 250, 90], ["60", "Beauvais", 215, 95], ["61", "Alençon", 165, 70], ["62", "Boulogne-sur-mer", 165, 70],
+  ["63", "Clermont-Ferrand", 225, 115], ["64", "Biarritz", 40, 10], ["64", "Pau", 80, 30], ["65", "Tarbes", 95, 35],
+  ["66", "Perpignan", 25, 0], ["67", "Strasbourg", 410, 165], ["68", "Mulhouse", 415, 155], ["69", "Lyon-Bron", 220, 110],
+  ["69", "Tarare", 275, 155], ["70", "Luxeuil", 335, 165], ["71", "Mont-Saint-Vincent", 270, 150], ["72", "Le Mans", 120, 70],
+  ["73", "Bourg-Saint-Maurice", 220, 190], ["73", "Challes-les-Eaux", 225, 150], ["76", "La Hève", 95, 60], ["76", "Rouen-Boos", 130, 90],
+  ["77", "Melun", 185, 90], ["80", "Abbeville", 165, 90], ["83", "Saint-Raphaël", 25, 0], ["83", "Toulon", 15, 0],
+  ["84", "Orange", 80, 45], ["86", "Poitiers", 130, 65], ["87", "Limoges", 160, 80], ["89", "Auxerre", 200, 95],
+  ["90", "Belfort", 370, 175], ["93", "Paris Le Bourget", 160, 85], ["2B", "Ajaccio", 0, 0]
+];
+
+// Coefficient An des matériaux non gélifs de la plate-forme, en (°C.jour)^1/2 par cm (guide de 1994)
+const AN_MATERIAUX = [
+  { id: "A", nom: "Sols A", an: 0.15 }, { id: "BC", nom: "Sols B et C", an: 0.13 }, { id: "D", nom: "Sols D", an: 0.12 },
+  { id: "LTCC", nom: "LTCC", an: 0.14 }, { id: "CVSCSL", nom: "Cendres volantes, sable-ciment, sable-laitier", an: 0.17 }
+];
+
+// Quantité de gel admissible en surface d'un matériau gélif, selon la pente p de l'essai de gonflement
+const qgPente = p => p <= 0.25 ? 4 : p <= 1 ? 1 / p : 0;
+
+// Qg et Qng de la plate-forme (guide de 1994, NF P98-086)
+function quantitesGel(G) {
+  const an = (AN_MATERIAUX.find(a => a.id === G.an) || AN_MATERIAUX[2]).an, hn = G.hn || 0;
+  const qng = hn > 0 ? an * hn * hn / (hn + 10) : 0;
+  let qg = null;
+  if (G.sol === "SGp") qg = qgPente(G.pSGp);
+  else if (G.sol === "SGt") qg = qgPente(G.pSGt);
+  else if (G.sol === "SGpSGt") {
+    const a = qgPente(G.pSGt), b = qgPente(G.pSGp);
+    qg = a + Math.min(G.hp || 0, 20) / 20 * (b - a);
+  }
+  return { qg, qng, an };
+}
+
+// Apport mécanique QM : épaisseur e de sol dégelé (module de la plate-forme divisé par 10) qui accroît
+// de 5 % la sollicitation de fatigue des couches liées ; QM = e / 10 (e en cm). Chaussées de plus de
+// 20 cm de matériaux liés seulement.
+function apportMecanique(E, P) {
+  const eLiees = P.ui.filter(u => u.famille !== "non_lie").reduce((s, u) => s + u.h, 0);
+  if (eLiees <= 0.20 + 1e-9) return { qm: 0, e: 0, raison: "moins de 20 cm de matériaux liés" };
+  const ch = chargeEffective(E.hyp);
+  const crit = P.ui.filter(u => { const c = critereCouche(u, P.ui); return c === "et" || c === "st"; });
+  if (!crit.length) return { qm: 0, e: 0, raison: "pas de couche liée vérifiée en fatigue" };
+  const prof = crit.map(u => ({ z: u.zBas, couche: u.calcBas }));
+  const lire = (S, k) => {
+    const s = S[k], c = critereCouche(crit[k], P.ui), v = [];
+    for (const pos of ["roue", "entre"]) if (s[pos]) v.push(c === "et" ? Math.max(s[pos].eT, s[pos].eL) : Math.max(s[pos].sT, s[pos].sL));
+    return Math.max(...v);
+  };
+  const S1 = solliciter(P, ch, prof), ref = crit.map((u, k) => lire(S1, k));
+  const ratio = e => {
+    const n = P.calc.length;
+    const P2 = { ...P, calc: [...P.calc.slice(0, n - 1), { E: P.Epf / 10, nu: P.nuPf, h: e, ui: -1 }, P.calc[n - 1]], itf: [...P.itf, "collee"] };
+    const S2 = solliciter(P2, ch, prof);
+    return Math.max(...crit.map((u, k) => ref[k] > 0 ? lire(S2, k) / ref[k] : 0));
+  };
+  let lo = 0, hi = 0.6;
+  if (ratio(hi) < 1.05) return { qm: hi * 10, e: hi * 100, raison: "" };
+  for (let k = 0; k < 16; k++) { const m = (lo + hi) / 2; if (ratio(m) > 1.05) hi = m; else lo = m; }
+  const e = (lo + hi) / 2 * 100;
+  return { qm: e / 10, e, raison: "" };
+}
+
+// Vérification complète : QPF, calcul thermique, indice de gel admissible IA = IS / 0,7 + 10
+function verificationGel(E) {
+  const G = E.gel, P = preparer(E);
+  if (G.sol === "SGn") return { sansObjet: true };
+  const { qg, qng, an } = quantitesGel(G);
+  const meca = G.qm ? apportMecanique(E, P) : { qm: 0, e: 0, raison: "non compté" };
+  const qpf = qg + qng + meca.qm;
+  const couches = P.ui.map(u => ({ h: u.h, ...THERMIQUE[THERMIQUE_MATERIAU[u.m.id] || "gnt"] }));
+  const r = propagationGel(couches, THERMIQUE.solA, { qpf, dz: 0.01 });
+  const IA = r.IsAdmissible != null ? r.IsAdmissible / 0.7 + 10 : null;
+  return { qg, qng, an, meca, qpf, IsAdm: r.IsAdmissible, IA, IAmin: r.Is / 0.7 + 10, serie: r.serie, zpf: r.zpf, couches: P.ui.map(u => THERMIQUE_MATERIAU[u.m.id] || "gnt") };
+}
+</script>
+
 <script>
 "use strict";
 // ---------- Icônes, thème, panneau "À propos" (mêmes mécaniques que les autres outils B27) ----------
 
 // Tracés Lucide (licence ISC), dessinés en trait sur une grille de 24 ; "chaussee" est propre à l'outil
 const TRACES_ICONES = {
-  chaussee: '<circle cx="7.5" cy="7.2" r="3.3"/><circle cx="16.5" cy="7.2" r="3.3"/><path d="M2 12.2h20"/><path d="M2 16.2h20"/><path d="M2 20.2h3"/><path d="M10.5 20.2h3"/><path d="M19 20.2h3"/>',
+  chaussee: '<g stroke-width="1.5"><path d="M2.5 11V9.2a1.2 1.2 0 0 1 .8-1.1L6 7l2.2-3a1.2 1.2 0 0 1 1-.5h5.6a1.2 1.2 0 0 1 1 .5L18 7l2.7 1.1a1.2 1.2 0 0 1 .8 1.1V11"/><path d="M2.5 11h2"/><path d="M9 11h6"/><path d="M19.5 11h2"/><circle cx="6.8" cy="11" r="1.9"/><circle cx="17.2" cy="11" r="1.9"/><path d="M2 14h20"/><path d="M2 17.5h20"/><path d="M2 21h3"/><path d="M10.5 21h3"/><path d="M19 21h3"/></g>',
+  voiture: '<path d="M2.5 11V9.2a1.2 1.2 0 0 1 .8-1.1L6 7l2.2-3a1.2 1.2 0 0 1 1-.5h5.6a1.2 1.2 0 0 1 1 .5L18 7l2.7 1.1a1.2 1.2 0 0 1 .8 1.1V11"/><path d="M2.5 11h2"/><path d="M9 11h6"/><path d="M19.5 11h2"/><circle cx="6.8" cy="11" r="1.9"/><circle cx="17.2" cy="11" r="1.9"/>',
+  flocon: '<line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/>',
+  repere: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+  horloge: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
   camion: '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
   couches: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
   dossier: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
@@ -1410,6 +1733,8 @@ function initTheme() {
 
 // Journal des versions : deux ou trois phrases par version, le détail va dans JOURNAL.md
 const CHANGELOG = [
+  { v: "v2", date: "2026-10-22", titre: "Gel-dégel, onglets et aides",
+    texte: "Vérification au gel-dégel : quantités de gel Qg, Qng et QM, calcul thermique de propagation du gel de l'annexe H de la NF P98-086, qui redonne les résultats publiés d'Alizé 2 à 0,3 % près, indices de gel de référence des 83 stations du catalogue de 1998. Page découpée en quatre onglets avec les verdicts toujours visibles, bouton (i) d'aide à côté de chaque paramètre, nouveau pictogramme : une voiture posée sur les couches de chaussée." },
   { v: "v1", date: "2026-10-22", titre: "Première version",
     texte: "Calcul multicouche de Burmister sous jumelage de 65 kN ou roue simple, interfaces collées, glissantes ou semi-collées, contrôlé sur les sorties publiées d'Alizé-LCPC. Bibliothèque de la NF P98-086, trafic cumulé NE avec les CAM et les risques de la norme, valeurs admissibles détaillées facteur par facteur. Épaisseur minimale d'une couche, profil des sollicitations en profondeur, note de calcul imprimable et enregistrement du calcul." }
 ];
@@ -1419,6 +1744,7 @@ const SOURCES = [
   ["Méthode", "Guide technique LCPC-SETRA, Conception et dimensionnement des structures de chaussée, décembre 1994 : règle des GNT, interfaces, structures inverses"],
   ["Structures types", "Catalogue des structures types de chaussées neuves, LCPC-SETRA, 1998"],
   ["Logiciel de référence", '<a href="https://www.alize-lcpc.com/" target="_blank" rel="noopener">Alizé-LCPC</a> (Université Gustave Eiffel) : manuel de la version 1.5 et documentation d\'Alizé2, dont les sorties chiffrées servent à contrôler le moteur'],
+  ["Gel-dégel", "Guide technique de 1994, chapitre VI.5 ; NF P98-086, annexe H ; note de l'Université Gustave Eiffel sur la vérification au gel par Alizé-LCPC (décembre 2023), dont les deux cas chiffrés servent à contrôler le calcul thermique ; indices de gel de référence du catalogue de 1998, annexe 2"],
   ["Modèle mécanique", "Burmister (1943), The theory of stresses and displacements in layered systems ; solution exacte en transformée de Hankel"]
 ];
 
@@ -1438,7 +1764,8 @@ function ouvrirApropos() {
       ["Version", `${act.v} du ${dateFr(act.date)}`],
       ["Matériaux de la bibliothèque", `${MATERIAUX.length}, modifiables couche par couche`],
       ["Charge de référence", "jumelage de 65 kN : q = 0,662 MPa, a = 0,125 m, d = 0,375 m"],
-      ["Contrôle du moteur", "sorties publiées d'Alizé-LCPC 1.5 et d'Alizé2 retrouvées au dixième près"]
+      ["Contrôle du moteur", "sorties publiées d'Alizé-LCPC 1.5 et d'Alizé2 retrouvées au dixième près"],
+      ["Stations d'indice de gel", `${STATIONS_IR.length}, période 1951-1997`]
     ])),
     groupe("livre", "Méthode", `<div class="methodo">
       <p><b>Modèle.</b> La chaussée est un massif multicouche élastique linéaire (Burmister) : couches homogènes et isotropes d'épaisseur finie sur un sol semi-infini, interfaces collées ou glissantes. Le problème est résolu exactement en transformée de Hankel, l'intégrale étant évaluée par Gauss-Legendre. Comme dans Alizé, les sollicitations sont lues sur deux verticales, sous une roue et au milieu du jumelage, en haut et en bas de chaque couche, et la plus défavorable est retenue. Une interface semi-collée prend la moyenne des calculs collé et glissant.</p>
@@ -1446,7 +1773,8 @@ function ouvrirApropos() {
       <p><b>Critères.</b> Fatigue des matériaux bitumineux : ε<sub>t</sub> à la base de chaque couche qui a une loi de fatigue (les couches de roulement BBM et BBTM n'en ont pas) ; sur une chaussée souple, simple couche de surface posée sur GNT, seule la plate-forme est vérifiée. Fatigue des matériaux hydrauliques et des bétons : σ<sub>t</sub> à la base. Orniérage : ε<sub>z</sub> en tête de la plate-forme, avec A = 16 000 µdef sous 250 000 essieux et 12 000 au-delà, et en tête d'une couche de forme modélisée. Une GNT posée sur une couche traitée (structure inverse) prend 480 MPa et se vérifie en ε<sub>z</sub> à 1,2 fois l'admissible du sol.</p>
       <p><b>Coefficients.</b> kr = 10<sup>-u b δ</sup>, δ = √(SN² + (c Sh / b)²), c = 2 m⁻¹ ; pour les bitumineux, Sh suit l'épaisseur d'assise bitumineuse, couche de roulement exclue. ks selon le module du support de la couche liée : 1/1,2 sous 50 MPa, 1/1,1 jusqu'à 80, 1/1,065 jusqu'à 120, 1 au-delà ; une assise bitumineuse compte comme un tout.</p>
       <p><b>Modules.</b> Les bitumineux prennent leur module à la température équivalente (15 °C en métropole), interpolé dans le tableau E(θ). Une GNT en couche de base (sous la seule couche de roulement) prend le module de sa catégorie sur 15 cm, ou 20 cm au-delà de 100 000 essieux ; la fondation est découpée en tranches de 25 cm depuis la plate-forme, chacune à k fois le module de ce qui la porte (k = 3, 2,5 ou 2), plafonnée au module de la catégorie, ou à 360 MPa sous une assise bitumineuse.</p>
-      <p><b>Ce que l'outil ne fait pas.</b> Vérification au gel-dégel, renforcement de chaussées existantes, majorations propres aux giratoires, charges spéciales (aéronautiques, portuaires).</p>
+      <p><b>Gel-dégel.</b> Quantité de gel admissible au niveau de la plate-forme Q<sub>PF</sub> = Q<sub>g</sub> + Q<sub>ng</sub> + Q<sub>M</sub> (guide de 1994) : Q<sub>g</sub> selon la pente p de l'essai de gonflement du sol gélif, Q<sub>ng</sub> = A<sub>n</sub> h<sub>n</sub>² / (h<sub>n</sub> + 10) pour les matériaux non gélifs de la plate-forme, Q<sub>M</sub> = e / 10 pour une chaussée de plus de 20 cm de matériaux liés, e étant l'épaisseur de sol dégelé (module divisé par 10) qui accroît de 5 % la sollicitation de fatigue. Le calcul thermique de l'annexe H de la NF P98-086 donne l'indice de gel en surface IS qui transmet Q<sub>PF</sub> à la plate-forme : propagation du gel en une dimension, chaussée sur le sol A borné à 40 m, 1 °C en surface et 14 °C à 10 m sous la plate-forme au départ, surface en hyperbole vers -5 °C, caractéristiques thermiques de la norme. IA = IS / 0,7 + 10 est comparé à l'indice de référence IR du site.</p>
+      <p><b>Ce que l'outil ne fait pas.</b> Renforcement de chaussées existantes, majorations propres aux giratoires, charges spéciales (aéronautiques, portuaires), matériaux hors bibliothèque thermique pour le gel.</p>
     </div>`),
     groupe("couches", "Matériaux bitumineux (E en MPa à 10 Hz, ε6 en µdef)", tBitu),
     groupe("couches", "Matériaux hydrauliques et bétons (E et σ6 en MPa, ν = 0,25)", tHydro),
@@ -1478,6 +1806,7 @@ function etatDefaut() {
     projet: { affaire: "", voie: "" },
     trafic: { direct: false, voie: "rase", mja: 150, p: 20, tau: 2, loi: "geo", ne: 1000000, cam: { bitumineux: null, hydraulique: null, sol: null } },
     hyp: { risqueMB: null, risqueMTLH: null, theta: TETA_REF, charge: "jumelage", q: CHARGE_REF.q, a: CHARGE_REF.a, d: CHARGE_REF.d, coefA: "auto" },
+    gel: { actif: true, station: "21|Dijon", hiver: "HRNE", ir: null, sol: "SGp", pSGp: 0.3, pSGt: 0.6, hp: 0, hn: 0, an: "D", qm: true },
     ...etatModele("bitumineuse")
   };
 }
@@ -1497,6 +1826,9 @@ function fusionner(base, x) {
   const r = fusionnerChamps(base, x);
   if (!VOIES.some(v => v.id === r.trafic.voie)) r.trafic.voie = base.trafic.voie;
   if (!PLATEFORMES.some(p => p.id === r.pf.classe)) r.pf = base.pf;
+  if (!["SGp", "SGt", "SGpSGt", "SGn"].includes(r.gel.sol)) r.gel.sol = base.gel.sol;
+  if (!AN_MATERIAUX.some(a => a.id === r.gel.an)) r.gel.an = base.gel.an;
+  if (!STATIONS_IR.some(x => cleStation(x) === r.gel.station)) r.gel.station = base.gel.station;
   r.couches = (Array.isArray(x.couches) ? x.couches : base.couches)
     .filter(c => c && MAT[c.mat])
     .map(c => ({ mat: c.mat, h: nb(c.h) ?? 10, E: nb(c.E), nu: nb(c.nu), itf: ["collee", "semi", "glissante"].includes(c.itf) ? c.itf : "collee", p: c.p && typeof c.p === "object" ? c.p : {} }));
@@ -1536,6 +1868,7 @@ function remplirFormulaire() {
   $("#risqueMB").value = H.risqueMB ?? ""; $("#risqueMTLH").value = H.risqueMTLH ?? ""; $("#theta").value = H.theta;
   $("#charge").value = H.charge; $("#coefA").value = H.coefA;
   remplirCharge();
+  remplirGel();
 }
 function remplirCharge() {
   const H = E.hyp, ch = chargeEffective(H), ref = H.charge === "jumelage";
@@ -1565,7 +1898,7 @@ function optionsMateriaux(sel) {
     `<option value="${m.id}"${m.id === sel ? " selected" : ""}>${esc(m.nom)} : ${esc(m.libelle)}</option>`).join("")}</optgroup>`).join("");
 }
 function champParam(i, cle, label, valeur, defaut, step, unite) {
-  return `<div class="fld"><label>${label}</label><div class="ligne"><input type="number" step="${step}" data-i="${i}" data-p="${cle}" value="${valeur ?? ""}" placeholder="${defaut}">${unite ? `<span class="unite">${unite}</span>` : ""}</div></div>`;
+  return `<div class="fld"><label data-aide="${cle}">${label}</label><div class="ligne"><input type="number" step="${step}" data-i="${i}" data-p="${cle}" value="${valeur ?? ""}" placeholder="${defaut}">${unite ? `<span class="unite">${unite}</span>` : ""}</div></div>`;
 }
 function rendreCouches() {
   const P = R ? R.P : preparer(E);
@@ -1623,6 +1956,7 @@ function rendreCouches() {
     <td><input type="number" data-k="pfNu" value="${pf.nu}" min="0" max="0.5" step="0.05" style="width:62px" aria-label="Coefficient de Poisson de la plate-forme"></td>
     <td></td><td class="noprint"></td></tr>`;
   $("#corpsCouches").innerHTML = html;
+  poserAides($("#corpsCouches"));
 
   const eLiees = P.ui.filter(u => u.famille !== "non_lie").reduce((s, u) => s + u.h, 0);
   const eBitu = P.ui.filter(u => u.famille === "bitumineux").reduce((s, u) => s + u.h, 0);
@@ -1808,13 +2142,11 @@ function dessinerCoupe() {
   </defs>`;
   // Jumelage
   const cx = x0 + wc / 2, jum = R.ch.type !== "simple";
-  const roues = jum ? [cx - 24, cx + 24] : [cx];
-  roues.forEach(rx => {
-    s += `<rect x="${rx - 14}" y="${haut - 36}" width="28" height="34" rx="7" fill="${encre}" opacity=".88"/>`;
-    s += `<rect x="${rx - 9}" y="${haut - 31}" width="18" height="24" rx="4" fill="none" stroke="${couleur("--papier")}" stroke-width="1.2" opacity=".5"/>`;
-  });
-  s += `<text x="${x0 + wc + 10}" y="${haut - 22}" font-size="11" fill="${discret}">${jum ? "jumelage" : "roue simple"}</text>`;
-  s += `<text x="${x0 + wc + 10}" y="${haut - 9}" font-size="11" fill="${discret}">${fr(R.ch.q, 3)} MPa</text>`;
+  // Véhicule au trait du pictogramme, roues posées sur la surface (grille de 24, roues jusqu'à y = 12,9)
+  const kv = 4.4, xv = cx - 12 * kv, yv = haut - 12.9 * kv - 0.8;
+  s += `<g transform="translate(${xv} ${yv}) scale(${kv})" fill="none" stroke="${encre}" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" opacity=".85">${TRACES_ICONES.voiture.replace(/\/>/g, ' vector-effect="non-scaling-stroke"/>')}</g>`;
+  s += `<text x="${x0 + wc + 10}" y="${haut - 22}" font-size="11" fill="${discret}">${jum ? `jumelage ${fr(2 * Math.PI * R.ch.a ** 2 * R.ch.q * 1000, 0)} kN` : "roue simple"}</text>`;
+  s += `<text x="${x0 + wc + 10}" y="${haut - 9}" font-size="11" fill="${discret}">q = ${fr(R.ch.q, 3)} MPa</text>`;
   // Couches
   let y = haut;
   const ys = [];
@@ -1942,16 +2274,22 @@ function dessinerProfil() {
 // des scripts de la page, pour que la saisie ne se fige jamais. Sans Worker, il reste calculé sur place.
 let travailleur = null;
 try {
-  const src = ["moteur", "donnees", "calcul"].map(id => document.getElementById(id).textContent).join("\n")
-    + "\nonmessage = ev => { const r = profil(ev.data.E); postMessage({ jeton: ev.data.jeton, P: { ui: r.P.ui.map(u => ({ zHaut: u.zHaut, zBas: u.zBas, famille: u.famille })), epaisseur: r.P.epaisseur }, S: r.S }); };";
+  const src = ["moteur", "donnees", "calcul", "gel"].map(id => document.getElementById(id).textContent).join("\n")
+    + "\nonmessage = ev => { const d = ev.data;"
+    + " if (d.type === 'gel') { let r; try { r = verificationGel(d.E); } catch (e) { r = { erreur: e.message }; } postMessage({ type: 'gel', jeton: d.jeton, r }); return; }"
+    + " const r = profil(d.E); postMessage({ type: 'profil', jeton: d.jeton, P: { ui: r.P.ui.map(u => ({ zHaut: u.zHaut, zBas: u.zBas, famille: u.famille })), epaisseur: r.P.epaisseur }, S: r.S }); };";
   travailleur = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
-  travailleur.onmessage = ev => { if (ev.data.jeton === profilJeton) { profilCache = ev.data; dessinerProfil(); } };
+  travailleur.onmessage = ev => {
+    const d = ev.data;
+    if (d.type === "gel") { if (d.jeton === gelJeton) { G = d.r; rendreGel(); rendreResume(); } return; }
+    if (d.jeton === profilJeton) { profilCache = d; dessinerProfil(); }
+  };
   travailleur.onerror = () => { travailleur = null; };
 } catch (e) { travailleur = null; }
 function lancerProfil() {
   const jeton = ++profilJeton;
   profilCache = null; dessinerProfil();
-  if (travailleur) { travailleur.postMessage({ jeton, E: JSON.parse(JSON.stringify(E)) }); return; }
+  if (travailleur) { travailleur.postMessage({ type: "profil", jeton, E: JSON.parse(JSON.stringify(E)) }); return; }
   setTimeout(() => {
     if (jeton !== profilJeton) return;
     profilCache = profil(E); dessinerProfil();
@@ -2006,7 +2344,7 @@ function rendreImpression() {
 }
 
 // ----- Mise à jour générale
-function dessiner() { if (!R) return; rendreVerification(); dessinerProfil(); }
+function dessiner() { if (!R) return; rendreVerification(); dessinerProfil(); dessinerCourbeGel(); }
 function maj() {
   try {
     R = calculer(E);
@@ -2020,7 +2358,9 @@ function maj() {
   rendreCouches(); notesStructure(); rendreTrafic(); rendreVerification(); rendreSollicitations(); rendreImpression();
   $("#optimRes").textContent = "";
   memoriser();
+  rendreResume();
   lancerProfil();
+  if (E.gel.actif) lancerGel();
 }
 
 // ----- Optimisation
@@ -2058,6 +2398,306 @@ $("#fichier").addEventListener("change", async ev => {
 $("#btnImprimer").addEventListener("click", () => window.print());
 window.addEventListener("beforeprint", rendreImpression);
 
+// ----- Onglets : quatre parties au lieu d'une longue page ; l'onglet ouvert suit l'adresse (#structure...)
+const ONGLETS = ["donnees", "structure", "detail", "gel"];
+function montrerOnglet(id, depuisClavier) {
+  if (!ONGLETS.includes(id)) id = "donnees";
+  document.querySelectorAll(".onglet").forEach(o => { o.hidden = o.dataset.onglet !== id; });
+  document.querySelectorAll(".onglets [role=tab]").forEach(b => {
+    const actif = b.dataset.onglet === id;
+    b.setAttribute("aria-selected", actif); b.tabIndex = actif ? 0 : -1;
+    if (actif && depuisClavier) b.focus();
+  });
+  try { localStorage.setItem("dimensionnement_chaussees_onglet", id); } catch (e) {}
+  if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+  fermerAide();
+}
+function initOnglets() {
+  const barre = $(".onglets");
+  barre.addEventListener("click", ev => {
+    const b = ev.target.closest("[data-onglet], [data-aller]");
+    if (b) montrerOnglet(b.dataset.onglet || b.dataset.aller);
+  });
+  barre.addEventListener("keydown", ev => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(ev.key) || !ev.target.closest("[role=tab]")) return;
+    const k = ONGLETS.indexOf(ev.target.dataset.onglet), n = ONGLETS.length;
+    const j = ev.key === "Home" ? 0 : ev.key === "End" ? n - 1 : (k + (ev.key === "ArrowRight" ? 1 : n - 1)) % n;
+    ev.preventDefault(); montrerOnglet(ONGLETS[j], true);
+  });
+  window.addEventListener("hashchange", () => montrerOnglet(location.hash.slice(1)));
+  let memo = null;
+  try { memo = localStorage.getItem("dimensionnement_chaussees_onglet"); } catch (e) {}
+  montrerOnglet(ONGLETS.includes(location.hash.slice(1)) ? location.hash.slice(1) : memo || "donnees");
+}
+
+// Résumé toujours visible dans la barre d'onglets : verdict mécanique et verdict gel-dégel
+let G = null;            // dernier résultat gel-dégel
+function rendreResume() {
+  const bouton = (cible, etat, texte, titre) => `<button type="button" class="resume-pastille ${etat}" data-aller="${cible}" title="${esc(titre)}">${ico(etat === "ok" ? "succes" : etat === "ko" ? "echec" : "horloge", 14)}<span>${texte}</span></button>`;
+  let html = "";
+  if (R) {
+    const pire = R.criteres.reduce((x, y) => y.taux > x.taux ? y : x);
+    html += bouton("structure", pire.taux <= 1 ? "ok" : "ko", `Mécanique ${fr(pire.taux * 100, 0)} %`, "Taux du critère dimensionnant, voir l'onglet Structure");
+  }
+  if (!E.gel.actif) { /* rien */ }
+  else if (!G) html += bouton("gel", "attente", "Gel : calcul...", "Calcul thermique en cours");
+  else if (G.sansObjet) html += bouton("gel", "ok", "Gel : sans objet", "Plate-forme non gélive");
+  else if (G.erreur) html += bouton("gel", "ko", "Gel : erreur", G.erreur);
+  else {
+    const ir = irCourant(), ia = G.IA ?? G.IAmin, ok = ir == null || ia >= ir;
+    html += bouton("gel", ok ? "ok" : "ko", `Gel : IA ${G.IA != null ? grouper(G.IA) : "> " + grouper(G.IAmin)}${ir != null ? ` / IR ${grouper(ir)}` : ""}`, "Indice de gel admissible et indice de référence, voir l'onglet Gel-dégel");
+  }
+  $("#resume").innerHTML = html;
+}
+
+// ----- Bulles d'aide (bouton (i)), même mécanique que la Calculette ECS et les Températures de référence
+let aideCourante = null;
+function fermerAide() {
+  const pop = $("#popAide");
+  if (pop.hidePopover && pop.hasAttribute("popover")) { try { pop.hidePopover(); } catch (e) { /* déjà fermé */ } }
+  pop.classList.remove("ouvert");
+  if (aideCourante) aideCourante.setAttribute("aria-expanded", "false");
+  aideCourante = null;
+}
+function placerAide(pop, btn) {
+  const r = btn.getBoundingClientRect(), p = pop.getBoundingClientRect();
+  const marge = 10, ecart = 7;
+  const gauche = Math.max(marge, Math.min(r.left - 12, window.innerWidth - p.width - marge));
+  const dessous = window.innerHeight - r.bottom - ecart - marge, dessus = r.top - ecart - marge;
+  let haut;
+  if (p.height <= dessous) haut = r.bottom + ecart;
+  else if (p.height <= dessus) haut = r.top - ecart - p.height;   // bascule au-dessus
+  else {
+    // Ne tient ni dessous ni dessus : le panneau prend le plus grand des deux côtés et défile,
+    // plutôt que de recouvrir le bouton qui sert à le refermer
+    const place = Math.max(dessous, dessus);
+    pop.style.maxHeight = place + "px";
+    haut = dessous >= dessus ? r.bottom + ecart : r.top - ecart - place;
+  }
+  pop.style.left = Math.round(gauche) + "px";
+  pop.style.top = Math.round(haut) + "px";
+}
+function basculerAide(btn, titre, html) {
+  const pop = $("#popAide");
+  if (aideCourante === btn) { fermerAide(); return; }
+  fermerAide();
+  pop.innerHTML = `<span class="aide-titre">${ico("info", 14)}${titre}</span>${html}`;
+  pop.style.maxHeight = "";
+  aideCourante = btn;
+  btn.setAttribute("aria-expanded", "true");
+  if (pop.showPopover && pop.hasAttribute("popover")) pop.showPopover();
+  else pop.classList.add("ouvert");
+  placerAide(pop, btn);   // après affichage : le panneau doit être mesurable
+}
+function brancherAide(btn, cle) {
+  // Un clic sur le bouton d'une aide ouverte la referme : le navigateur ferme d'abord le
+  // panneau (clic extérieur), on retient donc à l'appui qu'elle était ouverte
+  let ouverteAuClic = false;
+  btn.addEventListener("pointerdown", () => { ouverteAuClic = aideCourante === btn; });
+  btn.addEventListener("click", ev => {
+    ev.preventDefault(); ev.stopPropagation();
+    if (ouverteAuClic) { ouverteAuClic = false; fermerAide(); return; }
+    const a = AIDES[cle];
+    basculerAide(btn, a.titre, typeof a.texte === "function" ? a.texte() : a.texte);
+  });
+}
+// Chaque élément portant data-aide reçoit son bouton (i) à la suite de son intitulé
+function poserAides(racine) {
+  (racine || document).querySelectorAll("[data-aide]").forEach(el => {
+    const cle = el.dataset.aide;
+    if (el.dataset.aidePosee || !AIDES[cle]) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn-aide noprint";
+    b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-label", "Aide : " + AIDES[cle].titre);
+    b.title = "Aide : " + AIDES[cle].titre;
+    b.innerHTML = ico("info", 11);
+    el.appendChild(b);
+    brancherAide(b, cle);
+    el.dataset.aidePosee = "1";
+  });
+}
+function initAide() {
+  const pop = $("#popAide");
+  if (!("popover" in HTMLElement.prototype)) {
+    pop.removeAttribute("popover");
+    pop.classList.add("sans-popover");
+    document.addEventListener("click", ev => { if (aideCourante && !pop.contains(ev.target)) fermerAide(); });
+    document.addEventListener("keydown", ev => { if (ev.key === "Escape") fermerAide(); });
+  } else {
+    pop.addEventListener("toggle", ev => { if (ev.newState === "closed") fermerAide(); });
+  }
+  // Un défilement déplacerait le bouton sans déplacer le panneau : on ferme, sauf quand c'est
+  // le panneau lui-même qui défile
+  window.addEventListener("scroll", ev => { if (!pop.contains(ev.target)) fermerAide(); }, true);
+  window.addEventListener("resize", fermerAide);
+}
+
+// Tableaux insérés dans les aides : CAM et risques usuels, classes de trafic
+const tableAide = (tete, lignes) => `<table><thead><tr>${tete.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${lignes.map(l => `<tr>${l.map(x => `<td>${x}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+const AIDES = {
+  voie: { titre: "Type de voie", texte: `<p>Il fixe les CAM et les risques usuels de la NF P98-086 (annexe C).</p><p><b>Péri-urbaine ou rase campagne</b> : cas général. <b>À caractère autoroutier</b> : CAM plus forts à partir de T2. <b>Urbaine</b> : desserte (lotissement, accès riverains), distribution (voie collectrice de quartier), voie principale à trafic lourd (bus, livraisons). En urbain, la norme donne des CAM réduits pour les matériaux liés et un risque de 25 % (desserte, distribution) ou de 5 % (voie principale).</p>` },
+  nedirect: { titre: "Trafic cumulé saisi", texte: `<p>À cocher si le nombre cumulé d'essieux équivalents de 13 t sur la durée de service (NE) est déjà connu : donnée du maître d'ouvrage, étude de trafic, pesées.</p><p>La même valeur sert alors aux trois critères. Sans MJA, la classe de trafic n'est pas connue : les risques usuels sont pris dans la colonne T2, à corriger au besoin.</p>` },
+  mja: { titre: "MJA poids lourds", texte: () => `<p>Moyenne journalière annuelle de poids lourds (plus de 3,5 t de PTAC) <b>sur la voie la plus chargée</b>, l'année de mise en service. Sur une route à deux voies bidirectionnelle, on prend en général la moitié du trafic PL total ; à deux voies par sens, environ 90 % du trafic du sens sur la voie de droite.</p>${tableAide(["Classe", "MJA (PL/j)"], CLASSES_TRAFIC.map(c => [c.id, c.max === Infinity ? `${c.min} et plus` : `${c.min} à ${c.max}`]))}` },
+  duree: { titre: "Durée de dimensionnement", texte: `<p>Durée de service visée. Usuel : <b>20 ans</b> pour le réseau non structurant et la voirie urbaine, <b>30 ans</b> pour le réseau structurant.</p><p>Une durée plus courte avec un risque plus fort convient à un investissement progressif, quand un renforcement est prévu.</p>` },
+  tau: { titre: "Taux de croissance", texte: `<p>Croissance annuelle du trafic poids lourds. Valeurs courantes : 1 à 2 % par an ; 0 % pour une voirie de lotissement dont le trafic ne changera pas.</p><p>Le facteur de cumul C multiplie le trafic de la première année.</p>` },
+  loi: { titre: "Loi de croissance", texte: `<p><b>Géométrique</b> : le trafic augmente chaque année de τ % de l'année précédente, C = [(1 + τ)<sup>p</sup> - 1] / τ (guide de 1994).</p><p><b>Arithmétique</b> : il augmente chaque année du même nombre de poids lourds, C = p [1 + (p - 1) τ / 2] (catalogue de 1998).</p><p>L'écart reste faible sous 2 % par an.</p>` },
+  cam: { titre: "Coefficient d'agressivité moyen (CAM)", texte: () => `<p>Il convertit le passage d'un poids lourd moyen en nombre d'essieux de référence de 13 t. Il dépend du matériau vérifié (une couche traitée aux liants hydrauliques est plus sensible aux surcharges) et du trafic.</p><p>Champs vides : valeurs de la NF P98-086, chaussées non autoroutières :</p>${tableAide(["", "T5", "T4", "T3-", "T3+", "T2 à T0"], [["Bitumineux", ...CAM_NON_AUTOROUTIER.bitumineux.map(v => fr(v, 2))], ["Hydrauliques", ...CAM_NON_AUTOROUTIER.hydraulique.map(v => fr(v, 2))], ["Sol et GNT", ...CAM_NON_AUTOROUTIER.sol.map(v => fr(v, 2))]])}<p>À caractère autoroutier (T2 et au-delà) : 0,8 ; 1,3 ; 1. En urbain : 0,1 à 0,2 pour les bitumineux. Ne les remplacer que si une étude de trafic donne une valeur propre.</p>` },
+  ne: { titre: "Trafic cumulé NE", texte: `<p>Nombre cumulé d'essieux équivalents de 130 kN sur la durée de service : NE = 365 × MJA × C × CAM.</p>` },
+  risque: { titre: "Risque de calcul", texte: () => `<p>Probabilité que la chaussée présente des désordres structurels avant la fin de sa durée de service. Plus il est faible, plus la valeur admissible est réduite (coefficient kr). Les matériaux hydrauliques ont leur propre risque, leur dispersion étant plus forte.</p><p>Valeurs usuelles de la NF P98-086 (%) :</p>${tableAide(["", "T5", "T4", "T3", "T2", "T1", "T0", "TS"], [["Bitumineux", ...RISQUES.bitumineux.slice(0, 7).map(v => fr(v, 1))], ["Hydrauliques, semi-rigide", ...RISQUES.hydraulique["semi-rigide"].slice(0, 7).map(v => fr(v, 1))], ["Hydrauliques, mixte", ...RISQUES.hydraulique.mixte.slice(0, 7).map(v => fr(v, 1))]])}<p>Voies urbaines : 25 % (desserte, distribution), 5 % (voie principale).</p>` },
+  theta: { titre: "Température équivalente", texte: `<p>Température constante qui produirait sur l'année le même endommagement que les températures réelles. <b>15 °C en France métropolitaine</b> : elle fixe le module des enrobés et le terme √(E<sub>10 °C</sub>/E<sub>θeq</sub>) des valeurs admissibles.</p><p>Ne la changer que pour un climat particulier (outre-mer : 25 à 28 °C).</p>` },
+  charge: { titre: "Charge de référence", texte: `<p>Charge française : essieu isolé de 13 t à roues jumelées, soit un jumelage de 65 kN. Chaque roue est un disque de 0,125 m de rayon chargé à 0,662 MPa, les deux roues étant espacées de 0,375 m d'axe en axe.</p><p>C'est la charge à laquelle se rapportent NE et les valeurs admissibles : ne la changer que pour une étude particulière.</p>` },
+  geometrie: { titre: "Géométrie de la charge", texte: `<p>Pression q, rayon a du disque de contact et entraxe d des roues, modifiables en jumelage personnalisé ou en roue simple. La charge par roue vaut π a² q.</p>` },
+  coefA: { titre: "Coefficient A du sol", texte: `<p>Constante de la loi d'orniérage du sol : ε<sub>z,adm</sub> = A × NE<sup>-0,222</sup>.</p><p>NF P98-086 : <b>16 000 µdef</b> sous 250 000 essieux, <b>12 000 µdef</b> au-delà. Le guide de 1994 distinguait de même faible trafic et trafic moyen à fort.</p>` },
+  modele: { titre: "Structures types", texte: `<p>Points de départ tirés des familles du catalogue de 1998, épaisseurs à ajuster avec la recherche d'épaisseur minimale.</p><p><b>Bitumineuse épaisse</b> : trafic moyen à fort. <b>Souple</b> : faible trafic (GB sur GNT, ou simple couche de surface sur GNT). <b>Semi-rigide</b> : assise traitée aux liants hydrauliques. <b>Mixte</b> et <b>inverse</b> : bitumineux et hydrauliques combinés.</p>` },
+  materiau: { titre: "Couches de la structure", texte: `<p>De haut en bas, la plate-forme en dernier. Couche de surface : BBSG (BBM et BBTM ne sont pas vérifiés en fatigue). Assise : GB, EME, graves-ciment, sables traités, bétons. Fondation non traitée : GNT.</p><p>"Couche de forme" modélise une couche de forme ou un sol de module connu, vérifié en ε<sub>z</sub>. Le bouton de réglage de chaque ligne ouvre les paramètres de fatigue de la couche.</p>` },
+  epaisseur: { titre: "Épaisseur", texte: `<p>Épaisseur mise en oeuvre, en cm. La dispersion de l'épaisseur est prise en compte par l'écart type Sh dans les valeurs admissibles.</p><p>Vérifier la compatibilité avec les épaisseurs de mise en oeuvre du matériau (normes produit, granularité).</p>` },
+  module: { titre: "Module d'Young", texte: `<p>Rigidité de la couche (MPa). Champ vide : valeur de la bibliothèque, à 15 °C et 10 Hz pour les enrobés.</p><p>Pour les GNT, module calculé par la règle du guide : couche de base au module de la catégorie, fondation en tranches de 25 cm depuis la plate-forme à k fois le support, plafonnée ; le détail s'affiche au survol. Saisir une valeur seulement si un essai ou une étude la justifie.</p>` },
+  poisson: { titre: "Coefficient de Poisson", texte: `<p>Usuel : <b>0,35</b> pour les enrobés, les GNT et les sols ; <b>0,25</b> pour les matériaux traités aux liants hydrauliques et les bétons. Il change peu les résultats.</p>` },
+  interface: { titre: "Interface avec la couche du dessous", texte: `<p><b>Collée</b> : pas de glissement. Cas des enrobés entre eux, sur GNT, et des couches posées sur la plate-forme.</p><p><b>Glissante</b> : glissement libre. Dalle béton sur sa fondation, grave-ciment T4 en base sur fondation.</p><p><b>Semi-collée</b> : moyenne des deux calculs. Graves-ciment T3 et sables traités en base sur fondation.</p><p>L'outil propose l'interface usuelle à chaque changement de matériau.</p>` },
+  criteres: { titre: "Critères vérifiés", texte: `<p>Couches liées : fatigue à la base, ε<sub>t</sub> pour les enrobés, σ<sub>t</sub> pour les matériaux hydrauliques et les bétons. Plate-forme : déformation verticale ε<sub>z</sub> en tête, contre l'orniérage.</p><p>La valeur calculée est la plus défavorable sous une roue et entre les roues, dans les deux directions horizontales.</p>` },
+  taux: { titre: "Taux d'utilisation", texte: `<p>Sollicitation calculée divisée par la valeur admissible. Au-delà de 100 %, le critère n'est pas vérifié ; au-delà de 90 %, la marge est faible.</p><p>"Comprimé" : la base de la couche est en compression, la fatigue ne la menace pas.</p>` },
+  optim: { titre: "Épaisseur minimale", texte: `<p>Cherche par dichotomie la plus petite épaisseur de la couche choisie qui vérifie tous les critères mécaniques, arrondie au pas indiqué.</p><p>Le gel-dégel n'entre pas dans cette recherche : le vérifier ensuite dans son onglet.</p>` },
+  sollicitations: { titre: "Sollicitations calculées", texte: `<p>Déformations et contraintes en haut et en bas de chaque couche (et de chaque tranche de GNT). <b>T</b> : direction transversale, axe des deux roues ; <b>L</b> : longitudinale, sens de circulation ; <b>z</b> : verticale.</p><p>Extension et traction positives, compression négative. "Maximum" retient la position la plus défavorable.</p>` },
+  profil: { titre: "Profil en profondeur", texte: `<p>Variation de la grandeur choisie avec la profondeur, sous une roue et entre les roues. Les sauts aux interfaces sont normaux : changement de matériau ou interface glissante.</p>` },
+  admissibles: { titre: "Valeurs admissibles", texte: `<p>Chaque facteur de la formule de la NF P98-086, avec son origine. <b>kr</b> dépend du risque et des dispersions SN et Sh ; <b>kc</b> cale la méthode sur le comportement observé ; <b>ks</b> réduit l'admissible sur un support peu porteur ; <b>kd</b> tient compte des discontinuités des dalles et des matériaux T4.</p>` },
+  eps6: { titre: "ε6", texte: `<p>Déformation qui conduit à la rupture en un million de cycles, à 10 °C et 25 Hz (essai de fatigue NF EN 12697-24). Valeur de la classe du matériau, ou valeur de l'étude de formulation.</p>` },
+  invb: { titre: "Pente -1/b", texte: `<p>Pente de la droite de fatigue : la durée de vie varie comme la sollicitation à la puissance -1/b. 5 pour les enrobés ; 10 à 16 pour les matériaux hydrauliques, bien plus sensibles à une surcharge.</p>` },
+  SN: { titre: "SN", texte: `<p>Écart type du logarithme du nombre de cycles à la rupture, c'est-à-dire la dispersion de l'essai de fatigue : 0,25 à 0,3 pour les enrobés, 0,8 à 1 pour les matériaux hydrauliques.</p>` },
+  Sh: { titre: "Sh", texte: `<p>Écart type de l'épaisseur mise en oeuvre, en m. Enrobés : 1 cm jusqu'à 10 cm d'assise, 2,5 cm au-delà de 15 cm, interpolé entre deux. Matériaux hydrauliques : 3 cm (2,5 cm pour les sables traités). Champ vide : valeur de la méthode.</p>` },
+  kc: { titre: "kc", texte: `<p>Coefficient de calage, qui ajuste le calcul au comportement observé des chaussées : 1,1 BBSG et BBME, 1,3 GB, 1 EME, 1,4 graves-ciment, 1,5 autres matériaux hydrauliques et bétons.</p>` },
+  kd: { titre: "kd", texte: `<p>Prend en compte les discontinuités et la dispersion : 1/1,7 pour une dalle non goujonnée, 1/1,47 goujonnée, 1/1,25 pour les graves T4 et le BCR, 1 sinon.</p>` },
+  sig6: { titre: "σ6", texte: `<p>Contrainte de traction par flexion qui conduit à la rupture en un million de cycles, sur éprouvette de 360 jours. Valeur de la classe du matériau.</p>` },
+  kGNT: { titre: "Coefficient k des GNT", texte: `<p>Rapport entre le module d'une tranche de GNT et celui de ce qui la porte : 3, 2,5 et 2 pour les catégories 1, 2 et 3.</p>` },
+  EmaxGNT: { titre: "Plafond des GNT", texte: `<p>Module maximal des tranches : 600, 400 ou 200 MPa selon la catégorie, 360 MPa sous une assise bitumineuse.</p>` },
+  station: { titre: "Station météorologique", texte: `<p>Indices de gel des principales stations Météo-France, calculés sur la période 1951-1997 (catalogue des structures de 1998, annexe 2).</p><p>Ils caractérisent la station elle-même : loin d'une station, exploiter les postes climatologiques les plus proches du projet, ou saisir l'indice directement.</p>` },
+  hiver: { titre: "Hiver de référence", texte: `<p>Choix du gestionnaire de la voie, qui fixe la fréquence des barrières de dégel.</p><p><b>Exceptionnel</b> : l'hiver le plus rigoureux de la période. <b>Rigoureux non exceptionnel</b> : l'hiver décennal. Le réseau structurant se protège en général contre l'hiver exceptionnel, le reste contre l'hiver rigoureux non exceptionnel.</p>` },
+  ir: { titre: "Indice de gel de référence IR", texte: `<p>Indice de gel atmosphérique : somme, sur la période de gel, des températures moyennes journalières négatives de l'air, en °C·jour.</p><p>La structure tient au gel-dégel si son indice admissible IA est au moins égal à IR. Une saisie remplace la valeur de la station.</p>` },
+  gelivite: { titre: "Sensibilité au gel du sol", texte: `<p>Mesurée par la pente p de l'essai de gonflement au gel (NF P98-234-2) : <b>non gélif</b> (SGn) si p ≤ 0,05, <b>peu gélif</b> (SGp) jusqu'à 0,4, <b>très gélif</b> (SGt) au-delà.</p><p>Sans essai : les limons et sols fins sont en général peu ou très gélifs, les graves propres et les roches saines non gélives. Une couche est réputée aussi gélive que celle qui la surmonte si celle-ci l'est davantage.</p>` },
+  pente: { titre: "Pente p de l'essai de gonflement", texte: `<p>Pente de la courbe de gonflement au gel, en mm/(°C·h)<sup>1/2</sup>. Elle fixe la quantité de gel admissible Q<sub>g</sub> en surface du sol gélif : 4 si p ≤ 0,25, 1/p jusqu'à 1, nulle au-delà (gonflement limité à 5 mm).</p>` },
+  hp: { titre: "Épaisseur peu gélive", texte: `<p>Épaisseur de sol peu gélif au-dessus du sol très gélif. Q<sub>g</sub> passe linéairement de la valeur du sol très gélif (h<sub>p</sub> nul) à celle du sol peu gélif (h<sub>p</sub> de 20 cm et plus).</p>` },
+  hn: { titre: "Matériaux non gélifs", texte: `<p>Épaisseur de matériaux non gélifs de la plate-forme (couche de forme, partie haute non gélive du sol) qui n'est pas déjà dans la structure. Elle apporte la protection Q<sub>ng</sub> = A<sub>n</sub> h<sub>n</sub>² / (h<sub>n</sub> + 10).</p><p>Ne pas compter deux fois une couche de forme déjà saisie comme couche de la structure : celle-ci entre dans le calcul thermique.</p>` },
+  an: { titre: "Nature des non gélifs (An)", texte: () => `<p>Coefficient A<sub>n</sub> selon la classe du matériau (NF P11-300), en (°C·jour)<sup>1/2</sup>/cm :</p>${tableAide(["Matériau", "A<sub>n</sub>"], AN_MATERIAUX.map(a => [a.nom, fr(a.an, 2)]))}` },
+  qm: { titre: "Apport mécanique QM", texte: `<p>Au-delà de 20 cm de matériaux liés, la chaussée tolère une pénétration limitée du gel dans le sol gélif. On cherche l'épaisseur e de sol dégelé (module de la plate-forme divisé par 10) qui augmente de 5 % la sollicitation de fatigue des couches liées ; Q<sub>M</sub> = e / 10, e en cm, comme dans Alizé.</p>` },
+  courbe: { titre: "Protection thermique", texte: `<p>Résultat du calcul thermique de propagation du gel (NF P98-086, annexe H) : indice de gel en surface IS nécessaire pour transmettre une quantité de gel donnée au niveau de la plate-forme.</p><p>Le point marque Q<sub>PF</sub> : l'indice de surface admissible donne IA = IS / 0,7 + 10. La ligne IR situe l'indice du site.</p>` }
+};
+
+// ----- Gel-dégel : saisie, calcul dans le Worker, résultat
+const cleStation = s => `${s[0]}|${s[1]}`;
+function irCourant() {
+  const g = E.gel;
+  if (g.ir != null) return g.ir;
+  const s = STATIONS_IR.find(x => cleStation(x) === g.station);
+  return s ? (g.hiver === "HE" ? s[2] : s[3]) : null;
+}
+function remplirGel() {
+  const g = E.gel;
+  $("#gelStation").value = g.ir != null ? "" : g.station;
+  $("#gelHiver").value = g.hiver; $("#gelIR").value = irCourant() ?? "";
+  $("#gelIR").classList.toggle("force", g.ir != null);
+  $("#gelSol").value = g.sol; $("#gelPSGp").value = g.pSGp ?? ""; $("#gelPSGt").value = g.pSGt ?? "";
+  $("#gelHp").value = g.hp ?? 0; $("#gelHn").value = g.hn ?? 0; $("#gelAn").value = g.an; $("#gelQm").checked = g.qm;
+  $("#fldPSGp").hidden = !["SGp", "SGpSGt"].includes(g.sol);
+  $("#fldPSGt").hidden = !["SGt", "SGpSGt"].includes(g.sol);
+  $("#fldHp").hidden = g.sol !== "SGpSGt";
+  const s = STATIONS_IR.find(x => cleStation(x) === g.station);
+  $("#gelIRHint").textContent = g.ir != null ? "Indice saisi." : s ? `${s[1]} (${s[0]}) : ${grouper(s[2])} °C·jour en hiver exceptionnel, ${grouper(s[3])} en hiver rigoureux non exceptionnel (1951-1997).` : "";
+}
+function lireGel(champ) {
+  const g = E.gel;
+  if (champ === "gelStation") { const v = $("#gelStation").value; if (v) { g.station = v; g.ir = null; } }
+  if (champ === "gelIR") { g.ir = nb($("#gelIR").value); if (g.ir != null) g.ir = Math.max(0, g.ir); }
+  if (champ === "gelHiver") g.hiver = $("#gelHiver").value;
+  g.sol = $("#gelSol").value;
+  g.pSGp = nb($("#gelPSGp").value) ?? g.pSGp; g.pSGt = nb($("#gelPSGt").value) ?? g.pSGt;
+  g.hp = Math.max(0, nb($("#gelHp").value) ?? 0); g.hn = Math.max(0, nb($("#gelHn").value) ?? 0);
+  g.an = $("#gelAn").value; g.qm = $("#gelQm").checked;
+}
+let gelJeton = 0, gelMinuteur = null;
+function lancerGel() {
+  const jeton = ++gelJeton;
+  G = null; rendreGel(); rendreResume();
+  clearTimeout(gelMinuteur);
+  // Petite attente : une saisie rapide ne lance qu'un seul calcul thermique
+  gelMinuteur = setTimeout(() => {
+    if (jeton !== gelJeton) return;
+    const etat = JSON.parse(JSON.stringify(E));
+    if (travailleur) { travailleur.postMessage({ type: "gel", jeton, E: etat }); return; }
+    let r; try { r = verificationGel(etat); } catch (e) { r = { erreur: e.message }; }
+    if (jeton === gelJeton) { G = r; rendreGel(); rendreResume(); }
+  }, 250);
+}
+function rendreGel() {
+  const ir = irCourant(), v = $("#gelVerdict"), det = $("#gelDet");
+  const notes = [];
+  if (E.couches.some(c => MAT[c.mat].id === "CDF") && (E.gel.hn || 0) > 0)
+    notes.push(note("warn", "La structure contient une couche de forme et h<sub>n</sub> n'est pas nul : vérifier que la même épaisseur n'est pas comptée deux fois."));
+  if (ir != null && ir > 210) notes.push(note("warn", "La relation IS = 0,7 (IA - 10) entre indices de surface et atmosphérique est établie pour un indice qui ne dépasse pas 210 °C·jour en altitude moyenne ; au-delà, ou avec un fort ensoleillement, une étude particulière est recommandée."));
+  if (!G) {
+    v.className = "verdict attente"; v.innerHTML = `<span class="spin"></span><span>Calcul thermique en cours...</span>`;
+    det.innerHTML = ""; $("#gelCourbe").innerHTML = ""; $("#gelLegende").innerHTML = ""; $("#gelNotes").innerHTML = notes.join("");
+    return;
+  }
+  if (G.erreur) { v.className = "verdict ko"; v.innerHTML = `${ico("attention", 22)}<span>Calcul impossible : ${esc(G.erreur)}</span>`; det.innerHTML = ""; return; }
+  if (G.sansObjet) {
+    v.className = "verdict ok";
+    v.innerHTML = `${ico("succes", 26)}<div><div class="v-titre">Vérification sans objet</div><div class="v-sous">Plate-forme non gélive (SGn) : le gel ne menace pas la portance du support.</div></div>`;
+    det.innerHTML = ""; $("#gelCourbe").innerHTML = ""; $("#gelLegende").innerHTML = ""; $("#gelNotes").innerHTML = notes.join("");
+    $("#gelGraphe").hidden = true;
+    return;
+  }
+  $("#gelGraphe").hidden = false;
+  const ia = G.IA ?? G.IAmin, ok = ir == null || ia >= ir, iaTxt = G.IA != null ? grouper(G.IA) : `plus de ${grouper(G.IAmin)}`;
+  v.className = "verdict " + (ir == null ? "attente" : ok ? "ok" : "ko");
+  v.innerHTML = `${ico(ir == null ? "info" : ok ? "succes" : "echec", 26)}<div><div class="v-titre">${ir == null ? "Indice de référence à saisir" : ok ? "Tenue au gel-dégel vérifiée" : "Tenue au gel-dégel insuffisante"}</div>
+    <div class="v-sous">Indice de gel admissible IA ${iaTxt} °C·jour${ir != null ? `, indice de référence IR ${grouper(ir)} °C·jour` : ""}${ir != null && !ok ? ". Épaissir la chaussée ou les matériaux non gélifs de la plate-forme." : ""}</div></div>`;
+  const g = E.gel, s = STATIONS_IR.find(x => cleStation(x) === g.station);
+  const solTxt = { SGp: `peu gélif, p = ${fr(g.pSGp, 2)}`, SGt: `très gélif, p = ${fr(g.pSGt, 2)}`, SGpSGt: `peu gélif (p = ${fr(g.pSGp, 2)}, ${fr(g.hp, 0)} cm) sur très gélif (p = ${fr(g.pSGt, 2)})` }[g.sol];
+  const anNom = (AN_MATERIAUX.find(a => a.id === g.an) || {}).nom || "";
+  const lignes = [
+    ["Indice de référence IR", ir == null ? "-" : `${grouper(ir)} °C·jour <small>(${g.ir != null ? "saisi" : `${esc(s[1])}, hiver ${g.hiver === "HE" ? "exceptionnel" : "rigoureux non exceptionnel"}`})</small>`],
+    ["Q<sub>g</sub>, sol gélif", `${fr(G.qg, 2)} <small>(${solTxt})</small>`],
+    ["Q<sub>ng</sub>, non gélifs de la plate-forme", `${fr(G.qng, 2)} <small>(${(g.hn || 0) > 0 ? `${fr(g.hn, 0)} cm, ${esc(anNom)}, A<sub>n</sub> ${fr(G.an, 2)}` : "aucun"})</small>`],
+    ["Q<sub>M</sub>, apport mécanique", G.meca.raison ? `0 <small>(${esc(G.meca.raison)})</small>` : `${fr(G.meca.qm, 2)} <small>(e = ${fr(G.meca.e, 1)} cm de sol dégelé)</small>`],
+    ["Q<sub>PF</sub> = Q<sub>g</sub> + Q<sub>ng</sub> + Q<sub>M</sub>", `<b>${fr(G.qpf, 2)}</b> <small>(°C·jour)<sup>1/2</sup></small>`],
+    ["Indice de surface admissible IS", G.IsAdm != null ? `${grouper(G.IsAdm)} °C·jour <small>(√IS = ${fr(Math.sqrt(G.IsAdm), 2)})</small>` : "non atteint en 60 jours"],
+    ["Indice admissible IA = IS / 0,7 + 10", `<b>${iaTxt} °C·jour</b>`]
+  ];
+  if (ir != null) lignes.push(["Marge IA - IR", G.IA != null ? `${G.IA - ir >= 0 ? "+" : ""}${grouper(G.IA - ir)} °C·jour` : `plus de ${grouper(G.IAmin - ir)} °C·jour`]);
+  det.innerHTML = lignes.map(([k, x]) => `<dt>${k}</dt><dd>${x}</dd>`).join("");
+  notes.push(note("info", `Calcul thermique sur ${fr(G.zpf * 100, 0)} cm de chaussée posée sur le sol A de la méthode (${G.couches.map(c => THERMIQUE[c].nom.toLowerCase()).join(", ")}), conditions aux limites LCPC-SETRA.`));
+  $("#gelNotes").innerHTML = notes.join("");
+  dessinerCourbeGel();
+}
+// Courbe √IS en fonction de √It (quantité de gel transmise à la plate-forme), comme la figure VI.5.8 du guide
+function dessinerCourbeGel() {
+  const svg = $("#gelCourbe");
+  if (!G || G.sansObjet || G.erreur) return;
+  const W = 600, Ht = 330, ml = 52, mr = 16, mt = 14, mb = 42;
+  const pts = G.serie.map(p => [p.Qpf, Math.sqrt(p.Is)]);
+  const ir = irCourant(), sIR = ir != null && ir > 10 ? Math.sqrt(0.7 * (ir - 10)) : null;
+  const xmax = Math.max(1, Math.ceil(Math.max(G.qpf * 1.25, ...pts.map(p => p[0])) )), ymax = Math.ceil(Math.max(...pts.map(p => p[1]), sIR || 0) + 1);
+  const X = v => ml + v / xmax * (W - ml - mr), Y = v => Ht - mb - v / ymax * (Ht - mt - mb);
+  const disc = couleur("--discret"), ligne = couleur("--ligne"), prim = couleur("--primaire"), froid = couleur("--froid"), haute = couleur("--haute");
+  let s = "";
+  for (let x = 0; x <= xmax; x += xmax > 12 ? 2 : 1) s += `<line x1="${X(x)}" x2="${X(x)}" y1="${mt}" y2="${Ht - mb}" stroke="${ligne}" stroke-width=".7"/><text x="${X(x)}" y="${Ht - mb + 15}" text-anchor="middle" font-size="11" fill="${disc}">${x}</text>`;
+  const py = ymax > 14 ? 4 : 2;
+  for (let y = 0; y <= ymax; y += py) s += `<line x1="${ml}" x2="${W - mr}" y1="${Y(y)}" y2="${Y(y)}" stroke="${ligne}" stroke-width=".7"/><text x="${ml - 7}" y="${Y(y) + 4}" text-anchor="end" font-size="11" fill="${disc}">${y}</text>`;
+  s += `<text x="${(ml + W - mr) / 2}" y="${Ht - 6}" text-anchor="middle" font-size="11.5" fill="${disc}">√It, quantité de gel transmise à la plate-forme ((°C·jour)½)</text>`;
+  s += `<text x="13" y="${(mt + Ht - mb) / 2}" text-anchor="middle" font-size="11.5" fill="${disc}" transform="rotate(-90 13 ${(mt + Ht - mb) / 2})">√IS, surface ((°C·jour)½)</text>`;
+  const visibles = pts.filter(p => p[0] <= xmax);
+  s += `<path d="${visibles.map((p, k) => `${k ? "L" : "M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(" ")}" fill="none" stroke="${prim}" stroke-width="2.2"/>`;
+  if (sIR != null) s += `<line x1="${ml}" x2="${W - mr}" y1="${Y(sIR)}" y2="${Y(sIR)}" stroke="${froid}" stroke-width="1.6" stroke-dasharray="6 4"/><text x="${W - mr - 4}" y="${Y(sIR) - 6}" text-anchor="end" font-size="11.5" font-weight="700" fill="${froid}">IR ${grouper(ir)} °C·jour</text>`;
+  if (G.IsAdm != null) {
+    const sx = X(G.qpf), sy = Y(Math.sqrt(G.IsAdm));
+    s += `<path d="M${sx},${Ht - mb} L${sx},${sy} L${ml},${sy}" fill="none" stroke="${disc}" stroke-width="1.1" stroke-dasharray="3 3"/>`;
+    s += `<circle cx="${sx}" cy="${sy}" r="4.5" fill="${ir != null && G.IA < ir ? haute : prim}" stroke="${couleur("--papier")}" stroke-width="1.5"/>`;
+    s += `<text x="${sx + 8}" y="${sy + 16}" font-size="11.5" font-weight="700" fill="${couleur("--encre")}">IA ${grouper(G.IA)} °C·jour</text>`;
+    s += `<text x="${sx + 4}" y="${Ht - mb - 6}" font-size="11" fill="${disc}">Q<tspan font-size="8" dy="3">PF</tspan><tspan dy="-3"> ${fr(G.qpf, 2)}</tspan></text>`;
+  }
+  svg.innerHTML = s;
+  $("#gelLegende").innerHTML = `<span><i style="border-color:${prim}"></i>calcul thermique de la structure</span>${sIR != null ? `<span><i class="tirets" style="border-color:${froid}"></i>indice de surface du site</span>` : ""}`;
+}
+
 // ----- Démarrage
 segments("#posSolli", posSolli, v => { posSolli = v; rendreSollicitations(); });
 segments("#grandeurProfil", grandeurProfil, v => { grandeurProfil = v; dessinerProfil(); });
@@ -2065,8 +2705,16 @@ $("#btnApropos").addEventListener("click", ouvrirApropos);
 $("#btnAproposFermer").addEventListener("click", () => $("#dlgApropos").close());
 // Clic en dehors du panneau : la zone hors contenu appartient au <dialog> lui-même
 $("#dlgApropos").addEventListener("click", ev => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
+$("#gelStation").innerHTML = `<option value="">Saisie libre de l'indice</option>` + STATIONS_IR.map(x =>
+  `<option value="${esc(cleStation(x))}">${x[0]} ${esc(x[1])} : ${x[2]} / ${x[3]} °C·jour</option>`).join("");
+$("#gelAn").innerHTML = AN_MATERIAUX.map(a => `<option value="${a.id}">${esc(a.nom)} (A<sub>n</sub> ${fr(a.an, 2)})</option>`.replace(/<\/?sub>/g, "")).join("");
+["#gelStation", "#gelHiver", "#gelIR", "#gelSol", "#gelPSGp", "#gelPSGt", "#gelHp", "#gelHn", "#gelAn", "#gelQm"].forEach(sel =>
+  $(sel).addEventListener("change", () => { lireGel(sel.slice(1)); remplirGel(); memoriser(); lancerGel(); }));
 poserIcones();
 initTheme();
+initAide();
+poserAides();
+initOnglets();
 remplirFormulaire();
 maj();
 </script>
