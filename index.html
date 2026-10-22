@@ -5091,8 +5091,11 @@ function irCourant() {
 function candidats() {
   const g = E.gel, avecValeurs = STATIONS.filter(s => valeursStation(s, g.periode));
   if (g.site) return avecValeurs.map(s => ({ s, d: distanceKm(g.site, s) })).sort((x, y) => x.d - y.d).slice(0, 10);
+  // Sans site : stations du catalogue d'abord, puis séries longues (30 hivers et plus), de la plus basse à la plus
+  // haute, pour ne pas proposer d'emblée une station de montagne à un projet de vallée
+  const longue = s => (s[g.periode] || { n: 0 }).n >= 30 ? 1 : 0;
   return avecValeurs.filter(s => s.dep === g.dep).map(s => ({ s, d: null }))
-    .sort((x, y) => (y.s.cat ? 1 : 0) - (x.s.cat ? 1 : 0) || (y.s[g.periode] || { n: 0 }).n - (x.s[g.periode] || { n: 0 }).n);
+    .sort((x, y) => (y.s.cat ? 1 : 0) - (x.s.cat ? 1 : 0) || longue(y.s) - longue(x.s) || x.s.alt - y.s.alt);
 }
 function choisirStationParDefaut() {
   const c = candidats();
