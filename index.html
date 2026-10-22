@@ -335,6 +335,19 @@ table.solli td.z small{color:var(--discret)}
 table.solli tr.interface td{border-bottom:1px solid var(--ligne)}
 table.solli td.neg{color:var(--froid)}
 table.solli td.crit{font-weight:700;color:var(--primaire-encre);box-shadow:inset 0 -2px 0 var(--primaire)}
+/* Vue "Alizé" : même tableau que l'onglet Résultats d'Alizé2 */
+.alize-barre{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 10px;font-size:13px;color:var(--encre-2)}
+.alize-barre label{display:flex;align-items:center;gap:8px}
+.alize-defl{margin:0 0 8px;font-size:13px;font-weight:600;color:var(--primaire-encre)}
+table.alize th,table.alize td{text-align:right;font-variant-numeric:tabular-nums}
+table.alize th{text-transform:none;letter-spacing:0}
+table.alize th.g{text-align:center}
+table.alize td.ep{text-align:center;vertical-align:middle;border-right:1px solid var(--ligne-2)}
+table.alize tr.fin td{border-bottom:1px solid var(--ligne)}
+table.alize td.dl{text-align:left;color:var(--discret);font-size:11.5px}
+table.alize td.va{font-style:italic;font-weight:600;color:var(--encre)}
+table.alize td.ok{color:var(--primaire-encre);font-weight:700}
+table.alize td.ko{color:var(--haute);font-weight:700}
 .profil-zone{margin-top:16px}
 .profil{width:100%;height:auto;display:block}
 .legende{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--encre-2);margin-top:6px}
@@ -722,7 +735,13 @@ table.facteurs td:nth-child(2){white-space:nowrap}
       </span>
     </h2>
     <div class="body">
-      <div class="table-defile">
+      <div class="alize-barre noprint" id="alizeBarre" hidden>
+        <label>Option <select id="alizeOption"><option value="dim">Valeurs de dimensionnement</option><option value="sig">Contraintes</option><option value="eps">Déformations</option></select></label>
+        <label id="alizeProfilChamp">Profil <select id="alizeProfil"><option value="roue">centre de la roue</option><option value="entre">milieu du jumelage</option></select></label>
+      </div>
+      <p class="alize-defl" id="alizeDefl" hidden></p>
+      <div class="table-defile" id="zoneAlize" hidden><table class="solli alize" id="tableAlize"></table></div>
+      <div class="table-defile" id="zoneOutil">
         <table class="solli">
           <thead><tr id="teteSolli"><th>Profondeur</th><th>ε<sub>T</sub> µdef</th><th>ε<sub>L</sub> µdef</th><th>ε<sub>z</sub> µdef</th><th>σ<sub>T</sub> MPa</th><th>σ<sub>L</sub> MPa</th><th>σ<sub>z</sub> MPa</th></tr></thead>
           <tbody id="corpsSolli"></tbody>
@@ -912,7 +931,9 @@ function resoudre(M, b, n) {
 // couches : [{E, nu, h}], h ignorée pour la dernière ; interfaces : n-1 valeurs "collee" ou "glissante".
 // charge : {q (MPa), a (m)} sur un disque ; profondeurs : [{z, couche}] (couche = indice où l'on évalue,
 // utile aux interfaces) ; rayons : distances horizontales au centre du disque (m).
-// Renvoie res[iz][ir] = {sz, sr, st (MPa), ez, er, et, w (m, vers le bas)}.
+// Renvoie res[iz][ir] = {sz, sr, st, trz (MPa), ez, er, et, w (m, vers le bas)}.
+// En surface, l'intégrande ne décroît pas : on intègre l'écart au demi-espace de la première couche, qui
+// tend vers zéro, et l'on ajoute la solution exacte du demi-espace (σz = -q sous la charge, Boussinesq).
 function burmister(couches, interfaces, charge, profondeurs, rayons) {
   const n = couches.length, N = 4 * (n - 1) + 2;
   const zh = [0];
@@ -934,8 +955,11 @@ function burmister(couches, interfaces, charge, profondeurs, rayons) {
   for (let x = 0.02; x < dm; x *= 2) bornes.push(x);
   for (let x = dm; x < mmax + dm; x += dm) bornes.push(x);
   const nz = profondeurs.length, nr = rayons.length;
-  const K = new Float64Array(nz * nr * 4);
-  const M = new Float64Array(N * N), b = new Float64Array(N), j0 = new Float64Array(nr), j1r = new Float64Array(nr);
+  const K = new Float64Array(nz * nr * 5);
+  const M = new Float64Array(N * N), b = new Float64Array(N), j0 = new Float64Array(nr), j1 = new Float64Array(nr), j1r = new Float64Array(nr);
+  // Demi-espace de la première couche en surface : F = -2ν, F' = 2ν - 1, F'' = 2 - 2ν, F''' = 2ν - 3 quel que soit m
+  const nu0 = couches[0].nu, F1hs = 2 * nu0 - 1, F3hs = 2 * nu0 - 3;
+  const enSurface = profondeurs.map(p => p.couche === 0 && p.z <= 1e-9);
   const poser = (ligne, i, vals, signe) => { const c0 = 4 * i; for (let j = 0; j < vals.length; j++) M[ligne * N + c0 + j] += signe * vals[j]; };
 
   for (let ib = 0; ib < bornes.length - 1; ib++) {
@@ -964,28 +988,36 @@ function burmister(couches, interfaces, charge, profondeurs, rayons) {
       const x = resoudre(M, b, N);
       for (let ir = 0; ir < nr; ir++) {
         const mr = m * rayons[ir];
-        j0[ir] = besselJ0(mr); j1r[ir] = mr < 1e-8 ? 0.5 : besselJ1(mr) / mr;
+        j0[ir] = besselJ0(mr); j1[ir] = besselJ1(mr); j1r[ir] = mr < 1e-8 ? 0.5 : j1[ir] / mr;
       }
       for (let iz = 0; iz < nz; iz++) {
         const pt = profondeurs[iz], i = pt.couche, semi = i === n - 1;
         const d = derivees(semi ? 0 : m * (pt.z - zh[i + 1]), m * (pt.z - zh[i]), semi), c0 = 4 * i;
         let F = 0, F1 = 0, F2 = 0, F3 = 0;
         for (let j = 0; j < d[0].length; j++) { const c = x[c0 + j]; F += d[0][j] * c; F1 += d[1][j] * c; F2 += d[2][j] * c; F3 += d[3][j] * c; }
-        const nu = couches[i].nu, dep = ((1 - 2 * nu) * F2 - 2 * (1 - nu) * F) / m;
+        const nu = couches[i].nu, dep = ((1 - 2 * nu) * F2 - 2 * (1 - nu) * F) / m, tau = nu * F2 + (1 - nu) * F;
+        if (enSurface[iz]) { F1 -= F1hs; F3 -= F3hs; }
         for (let ir = 0; ir < nr; ir++) {
-          const k = (iz * nr + ir) * 4, pj0 = poids * j0[ir];
-          K[k] += pj0 * F1; K[k + 1] += poids * j1r[ir] * F1; K[k + 2] += pj0 * F3; K[k + 3] += pj0 * dep;
+          const k = (iz * nr + ir) * 5, pj0 = poids * j0[ir];
+          K[k] += pj0 * F1; K[k + 1] += poids * j1r[ir] * F1; K[k + 2] += pj0 * F3; K[k + 3] += pj0 * dep; K[k + 4] += poids * j1[ir] * tau;
         }
       }
     }
   }
   return profondeurs.map((pt, iz) => rayons.map((r, ir) => {
-    const c = couches[pt.couche], nu = c.nu, f = (1 + nu) / c.E, k = (iz * nr + ir) * 4;
-    const K1 = K[k], K2 = K[k + 1], K3 = K[k + 2], K4 = K[k + 3];
+    const c = couches[pt.couche], nu = c.nu, f = (1 + nu) / c.E, k = (iz * nr + ir) * 5;
+    let K1 = K[k], K2 = K[k + 1], K3 = K[k + 2];
+    const K4 = K[k + 3], K5 = K[k + 4];
+    if (enSurface[iz]) {
+      // Intégrales exactes du demi-espace : a ∫ J1(ma) J0(mr) dm et a ∫ J1(ma) J1(mr) / (mr) dm
+      const I0 = r < a - 1e-12 ? 1 : r > a + 1e-12 ? 0 : 0.5, I1 = r <= a ? 0.5 : a * a / (2 * r * r);
+      K1 += F1hs * q * I0; K2 += F1hs * q * I1; K3 += F3hs * q * I0;
+    }
     return {
       sz: (1 - nu) * K3 - (2 - nu) * K1,
       sr: nu * K3 + (1 - nu) * K1 - K2,
       st: nu * K3 - nu * K1 + K2,
+      trz: K5,
       er: f * (K1 - K2),
       et: f * K2,
       ez: f * ((1 - 2 * nu) * K3 - 2 * (1 - nu) * K1),
@@ -1317,7 +1349,10 @@ function solliciter(P, ch, profondeurs) {
     // Sous la roue : roue 1 à r = 0, roue 2 à r = d ; entre les roues : deux fois r = d/2.
     const ids = !jum ? [0] : pos === "roue" ? [0, 2] : [1, 1];
     const s = k => ids.reduce((acc, ir) => acc + moy(iz, ir, k), 0);
-    return { eT: s("er") * 1e6, eL: s("et") * 1e6, ez: s("ez") * 1e6, sT: s("sr"), sL: s("st"), sz: s("sz"), w: s("w") };
+    // Cisaillement vertical-transversal : nul sous sa propre roue et entre les roues (les deux apports
+    // s'annulent) ; sous la roue, celui de l'autre roue. ε est la composante du tenseur, (1 + ν) τ / E.
+    const c = P.calc[profondeurs[iz].couche], sTz = jum && pos === "roue" ? moy(iz, 2, "trz") : 0;
+    return { eT: s("er") * 1e6, eL: s("et") * 1e6, ez: s("ez") * 1e6, eTz: (1 + c.nu) / c.E * sTz * 1e6, sT: s("sr"), sL: s("st"), sz: s("sz"), sTz, w: s("w") };
   };
   return profondeurs.map((p, iz) => ({ z: p.z, couche: p.couche, roue: comp(iz, "roue"), entre: jum ? comp(iz, "entre") : null }));
 }
@@ -4400,6 +4435,8 @@ function initTheme() {
 
 // Journal des versions : deux ou trois phrases par version, le détail va dans JOURNAL.md
 const CHANGELOG = [
+  { v: "v5", date: "2026-10-22", titre: "Résultats présentés comme Alizé",
+    texte: "La vue \"Alizé\" du détail du calcul reprend les tableaux de l'onglet Résultats d'Alizé2 : valeurs de dimensionnement (εt et σt minimales, εz et σz maximales, direction et position, valeur admissible intercalée), contraintes et déformations, au centre de la roue ou au milieu du jumelage, avec les cisaillements, la déflexion en mm/100 et en µm, les mêmes axes, signes et arrondis. Les valeurs en surface sont calculées exactement (σz égale la pression du pneu sous la roue)." },
   { v: "v4", date: "2026-10-22", titre: "Projets Alizé et camion",
     texte: "Ouverture directe d'un projet Alizé2 (.zmsp) : structure, interfaces, plate-forme, trafic, paramètres de matériaux et station de gel repris, avec le compte rendu de ce qui reste à vérifier. Sollicitations affichables dans la convention d'Alizé (compression positive, axes X et Y). Sh des enrobés calculé sur toute l'épaisseur d'assise (les couches entre la couche de surface et la plate-forme) et -1/b de la grave-laitier T2 à 12, comme Alizé2 et sa bibliothèque NF P98-086 2019 : les kr d'un projet Alizé2 sont retrouvés à la quatrième décimale. Le logo, la coupe, le favicon et l'aperçu montrent un camion au lieu d'une voiture." },
   { v: "v3", date: "2026-10-22", titre: "Indice de gel de tous les sites",
@@ -4889,29 +4926,123 @@ function rendreSollicitations() {
     const u = P.ui[P.calc[ci].ui];
     return u.sous.length > 1 ? `${u.m.nom} (${u.sous.length - (u.calcBas - ci)}/${u.sous.length})` : u.m.nom;
   };
-  // Convention Alizé : compression positive, X dans le sens de circulation (L de l'outil), Y transversal (T)
   const alize = conventionSolli === "alize";
-  const colonnes = alize ? [["eL", 1, "ε<sub>X</sub> µdef"], ["eT", 1, "ε<sub>Y</sub> µdef"], ["ez", 1, "ε<sub>Z</sub> µdef"], ["sL", 3, "σ<sub>X</sub> MPa"], ["sT", 3, "σ<sub>Y</sub> MPa"], ["sz", 3, "σ<sub>Z</sub> MPa"]]
-    : [["eT", 1, "ε<sub>T</sub> µdef"], ["eL", 1, "ε<sub>L</sub> µdef"], ["ez", 1, "ε<sub>z</sub> µdef"], ["sT", 3, "σ<sub>T</sub> MPa"], ["sL", 3, "σ<sub>L</sub> MPa"], ["sz", 3, "σ<sub>z</sub> MPa"]];
-  $("#teteSolli").innerHTML = `<th>Profondeur</th>${colonnes.map(c => `<th>${c[2]}</th>`).join("")}`;
+  $("#posSolli").hidden = alize; $("#alizeBarre").hidden = !alize; $("#alizeDefl").hidden = !alize;
+  $("#zoneAlize").hidden = !alize; $("#zoneOutil").hidden = alize;
+  if (alize) { rendreAlize(); return; }
   for (let k = 1; k < S.length; k += 2) {
     const a = S[k], b = S[k + 1];
     [a, b].forEach((s, j) => {
       const v = lire(s), crit = critCell.get(`${s.z.toFixed(6)}|${s.couche}`);
-      // Les compressions restent en bleu dans les deux conventions
-      const cell = (key, d) => `<td class="${v[key] < 0 ? "neg" : ""}${crit === key ? " crit" : ""}">${fr(alize ? -v[key] : v[key], d)}</td>`;
+      const cell = (key, d) => `<td class="${v[key] < 0 ? "neg" : ""}${crit === key ? " crit" : ""}">${fr(v[key], d)}</td>`;
       html += `<tr class="${j === 1 ? "interface" : ""}"><td class="z">${fr(s.z * 100, 1)} cm <small>${j === 0 ? "base" : "tête"} ${esc(nomCalc(s.couche))}</small></td>
-        ${colonnes.map(([key, d]) => cell(key, d)).join("")}</tr>`;
+        ${cell("eT", 1)}${cell("eL", 1)}${cell("ez", 1)}${cell("sT", 3)}${cell("sL", 3)}${cell("sz", 3)}</tr>`;
     });
   }
   $("#corpsSolli").innerHTML = html;
   const d = R.deflexion;
-  $("#solliHint").innerHTML = (alize
-    ? `Convention Alizé : compression positive, extension et traction négatives ; X dans le sens de circulation, Y transversal, comme l'onglet Résultats d'Alizé2. Les compressions restent en bleu. `
-    : `Convention : extension et traction positives, compression négative (en bleu). `)
-    + `Valeurs soulignées : celles qui portent un critère. `
+  $("#solliHint").innerHTML = `Convention : extension et traction positives, compression négative (en bleu). Valeurs soulignées : celles qui portent un critère. `
     + `Déflexion en surface : ${fr(d.roue * 1e5, 1)} mm/100 sous la roue${d.entre != null ? `, ${fr(d.entre * 1e5, 1)} mm/100 entre les roues` : ""}.`;
 }
+
+// ----- Vue "Alizé" : les tableaux de l'onglet Résultats d'Alizé2, même présentation et mêmes arrondis.
+// Compression positive ; X dans le sens de circulation (L de l'outil), Y transversal (T), Z vertical.
+// Chaque couche : sa face haute puis sa face basse ; la plate-forme : sa face haute.
+let optionAlize = "sig", profilAlize = "roue";
+// Nombres comme Alizé : point décimal, zéros finals retirés, zéro sans signe
+function nbAlize(v, d) {
+  if (v == null || !isFinite(v)) return "";
+  const s = (+v.toFixed(d)).toString();
+  return s === "-0" ? "0" : s;
+}
+// Tenseurs dans la convention d'Alizé à partir d'une position de l'outil
+function valeursAlize(v) {
+  return {
+    sig: [-v.sL, -v.sT, -v.sz, 0, -v.sTz, 0],
+    eps: [-v.eL, -v.eT, -v.ez, 0, -v.eTz, 0]
+  };
+}
+function rendreAlize() {
+  const P = R.P, S = R.S, jum = R.ch.type !== "simple", nC = P.calc.length;
+  if (!jum) profilAlize = "roue";
+  $("#alizeOption").value = optionAlize; $("#alizeProfil").value = profilAlize;
+  $("#alizeProfilChamp").hidden = optionAlize === "dim" || !jum;
+  $("#alizeProfil").querySelector('[value="entre"]').disabled = !jum;
+  const pick = (z, ci) => S.find(s => Math.abs(s.z - z) < 1e-9 && s.couche === ci);
+  // Faces de chaque couche de calcul : haut et bas, une seule face pour la plate-forme
+  const faces = [];
+  let z = 0;
+  P.calc.forEach((c, ci) => {
+    if (ci === nC - 1) { faces.push({ ci, z, s: pick(z, ci), seule: true }); return; }
+    faces.push({ ci, z, s: pick(z, ci), haut: true });
+    z += c.h;
+    faces.push({ ci, z, s: pick(z, ci) });
+  });
+  const tete = c => `<td class="ep" rowspan="${c.rows}">${c.ci === nC - 1 ? "infini" : P.calc[c.ci].h.toFixed(3)}</td><td class="ep" rowspan="${c.rows}">${nbAlize(P.calc[c.ci].E, 0)}</td><td class="ep" rowspan="${c.rows}">${nbAlize(P.calc[c.ci].nu, 2)}</td>`;
+  let html = "";
+  if (optionAlize === "dim") {
+    // Valeurs de dimensionnement : εt et σt minimales (extension la plus forte) selon X et Y, εz et σz maximales,
+    // sous la roue (R) et au milieu du jumelage (J), avec la direction et la position de l'extremum
+    const extremum = (s, cles, mini) => {
+      let best = null;
+      for (const [pos, lettre] of [["roue", "R"], ["entre", "J"]]) {
+        const v = s[pos]; if (!v) continue;
+        for (const [cle, dir] of cles) {
+          const x = -v[cle];
+          if (!best || (mini ? x < best.v : x > best.v)) best = { v: x, dl: `${dir}-${lettre}` };
+        }
+      }
+      return best;
+    };
+    // Valeur admissible de chaque couche de calcul et critère qu'elle porte
+    const va = new Map();
+    R.criteres.forEach(c => {
+      const ci = c.u ? (c.crit === "ez" ? c.u.calcHaut : c.u.calcBas) : nC - 1;
+      va.set(ci, { col: { et: 0, st: 1, ez: 2 }[c.crit], adm: c.adm.valeur, z: c.z });
+    });
+    html += `<thead><tr><th rowspan="2">Ep. (m)</th><th rowspan="2">Mod. (MPa)</th><th rowspan="2">Nu (-)</th><th rowspan="2">Zcalc (m)</th>
+      <th class="g" colspan="2">εt (µdef)</th><th class="g" colspan="2">σt (MPa)</th><th class="g" colspan="2">εz (µdef)</th><th class="g" colspan="2">σz (MPa)</th></tr>
+      <tr><th>val.</th><th>dir-loc</th><th>val.</th><th>dir-loc</th><th>val.</th><th>dir-loc</th><th>val.</th><th>dir-loc</th></tr></thead><tbody>`;
+    for (let i = 0; i < faces.length;) {
+      const f = faces[i], groupe = f.seule ? [f] : [f, faces[i + 1]], v = va.get(f.ci);
+      const lignes = [];
+      groupe.forEach((g, j) => {
+        const vals = [extremum(g.s, [["eL", "X"], ["eT", "Y"]], true), extremum(g.s, [["sL", "X"], ["sT", "Y"]], true), extremum(g.s, [["ez", "Z"]], false), extremum(g.s, [["sz", "Z"]], false)];
+        const cellules = vals.map((x, k) => {
+          const verdict = v && v.col === k ? (Math.abs(x.v) <= v.adm ? " ok" : " ko") : "";
+          return `<td class="${verdict.trim()}">${nbAlize(x.v, k % 2 ? 3 : 1)}</td><td class="dl">${x.dl}</td>`;
+        }).join("");
+        lignes.push(`<td>${nbAlize(g.z, 3)}</td>${cellules}`);
+        // La valeur admissible s'intercale entre la face haute et la face basse, en italique
+        if (v && j === 0) lignes.push(`<td></td>${[0, 1, 2, 3].map(k => k === v.col ? `<td class="va">${nbAlize(v.adm, 3)}</td><td></td>` : "<td></td><td></td>").join("")}`);
+      });
+      const rows = lignes.length;
+      html += lignes.map((l, j) => `<tr class="${j === rows - 1 ? "fin" : ""}">${j === 0 ? tete({ ci: f.ci, rows }) : ""}${l}</tr>`).join("");
+      i += groupe.length;
+    }
+    html += "</tbody>";
+  } else {
+    const sig = optionAlize === "sig", u = sig ? "MPa" : "µdef", g = sig ? "σ" : "ε", d = sig ? 3 : 1;
+    html += `<thead><tr><th>Ep. (m)</th><th>Mod. (MPa)</th><th>Nu (-)</th><th>Zcalc (m)</th>${["X", "Y", "Z", "XY", "YZ", "ZX"].map(a => `<th>${g}${a} (${u})</th>`).join("")}</tr></thead><tbody>`;
+    for (let i = 0; i < faces.length;) {
+      const f = faces[i], groupe = f.seule ? [f] : [f, faces[i + 1]];
+      html += groupe.map((gr, j) => {
+        const v = gr.s[profilAlize] || gr.s.roue, t = valeursAlize(v)[sig ? "sig" : "eps"];
+        return `<tr class="${j === groupe.length - 1 ? "fin" : ""}">${j === 0 ? tete({ ci: f.ci, rows: groupe.length }) : ""}<td>${nbAlize(gr.z, 3)}</td>${t.map(x => `<td>${nbAlize(x, d)}</td>`).join("")}</tr>`;
+      }).join("");
+      i += groupe.length;
+    }
+    html += "</tbody>";
+  }
+  $("#tableAlize").innerHTML = html;
+  const w = profilAlize === "entre" && R.deflexion.entre != null && optionAlize !== "dim" ? R.deflexion.entre : R.deflexion.roue;
+  $("#alizeDefl").textContent = `Déflexion = ${Math.round(w * 1e5)} mm/100 = ${Math.round(w * 1e6)} µm`;
+  $("#solliHint").innerHTML = optionAlize === "dim"
+    ? `Comme le tableau "Valeurs de dimensionnement" d'Alizé2 : εt et σt minimales selon X et Y (une valeur négative est une extension), εz et σz maximales, sous la roue (R) ou au milieu du jumelage (J). La valeur admissible, en italique, s'intercale entre le haut et le bas de la couche qui porte le critère ; en vert si la sollicitation la respecte, en rouge sinon.`
+    : `Comme le tableau "${optionAlize === "sig" ? "Contraintes" : "Déformations"}" d'Alizé2 : compression positive, X dans le sens de circulation, Y transversal${optionAlize === "eps" ? ", ε<sub>YZ</sub> composante du tenseur" : ""}. En surface, l'outil intègre exactement : σZ y vaut la pression du pneu sous la roue (0,662 MPa), là où Alizé affiche quelques millièmes de moins. Le rayon de courbure d'Alizé n'est pas repris, sa définition n'étant pas publiée.`;
+}
+$("#alizeOption").addEventListener("change", () => { optionAlize = $("#alizeOption").value; rendreAlize(); });
+$("#alizeProfil").addEventListener("change", () => { profilAlize = $("#alizeProfil").value; rendreAlize(); });
 
 let profilCache = null, profilJeton = 0;
 function dessinerProfil() {
@@ -5097,7 +5228,7 @@ async function ouvrirAlize(f) {
     `<p class="hint" style="margin-top:0">${esc(f.name)}, ${esc(r.version || "Alizé2")}. Les données d'entrée remplacent le calcul en cours ; le projet Alizé n'est pas modifié.</p>`,
     groupe("couches", "Données reprises", `<ul class="liste-import">${r.repris.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`),
     r.notes.length ? groupe("attention", "À vérifier", r.notes.map(([g, t]) => note(g, esc(t))).join("")) : "",
-    groupe("info", "Comparer avec Alizé", `<p class="hint" style="margin:0">Dans Détail du calcul, choisir "Alizé" (convention de signe d'Alizé : compression positive, X dans le sens de circulation) et "Sous la roue" : les valeurs se lisent alors comme l'onglet Résultats d'Alizé.</p>`)
+    groupe("info", "Comparer avec Alizé", `<p class="hint" style="margin:0">Dans Détail du calcul, choisir "Alizé" : la page affiche les tableaux de l'onglet Résultats d'Alizé (Option : valeurs de dimensionnement, contraintes ou déformations ; Profil : centre de la roue ou milieu du jumelage), avec les mêmes axes, signes et arrondis.</p>`)
   ].join("");
   $("#dlgImport").showModal();
 }
@@ -5263,7 +5394,7 @@ const AIDES = {
   criteres: { titre: "Critères vérifiés", texte: `<p>Couches liées : fatigue à la base, ε<sub>t</sub> pour les enrobés, σ<sub>t</sub> pour les matériaux hydrauliques et les bétons. Plate-forme : déformation verticale ε<sub>z</sub> en tête, contre l'orniérage.</p><p>La valeur calculée est la plus défavorable sous une roue et entre les roues, dans les deux directions horizontales.</p>` },
   taux: { titre: "Taux d'utilisation", texte: `<p>Sollicitation calculée divisée par la valeur admissible. Au-delà de 100 %, le critère n'est pas vérifié ; au-delà de 90 %, la marge est faible.</p><p>"Comprimé" : la base de la couche est en compression, la fatigue ne la menace pas.</p>` },
   optim: { titre: "Épaisseur minimale", texte: `<p>Cherche par dichotomie la plus petite épaisseur de la couche choisie qui vérifie tous les critères mécaniques, arrondie au pas indiqué.</p><p>Le gel-dégel n'entre pas dans cette recherche : le vérifier ensuite dans son onglet.</p>` },
-  sollicitations: { titre: "Sollicitations calculées", texte: `<p>Déformations et contraintes en haut et en bas de chaque couche (et de chaque tranche de GNT). <b>T</b> : direction transversale, axe des deux roues ; <b>L</b> : longitudinale, sens de circulation ; <b>z</b> : verticale.</p><p>Extension et traction positives, compression négative. "Maximum" retient la position la plus défavorable.</p><p><b>Convention Alizé</b> : mêmes valeurs, signe inversé (compression positive) et colonnes renommées comme dans l'onglet Résultats d'Alizé2 : X = L (sens de circulation), Y = T (transversal), Z = z. Pour comparer, choisir aussi "Sous la roue".</p>` },
+  sollicitations: { titre: "Sollicitations calculées", texte: `<p>Déformations et contraintes en haut et en bas de chaque couche (et de chaque tranche de GNT). <b>T</b> : direction transversale, axe des deux roues ; <b>L</b> : longitudinale, sens de circulation ; <b>z</b> : verticale.</p><p>Extension et traction positives, compression négative. "Maximum" retient la position la plus défavorable.</p><p><b>Alizé</b> : les tableaux de l'onglet Résultats d'Alizé2, à l'identique (valeurs de dimensionnement, contraintes, déformations ; centre de la roue ou milieu du jumelage). Compression positive, X = L (sens de circulation), Y = T (transversal), cisaillements compris.</p>` },
   profil: { titre: "Profil en profondeur", texte: `<p>Variation de la grandeur choisie avec la profondeur, sous une roue et entre les roues. Les sauts aux interfaces sont normaux : changement de matériau ou interface glissante.</p>` },
   admissibles: { titre: "Valeurs admissibles", texte: `<p>Chaque facteur de la formule de la NF P98-086, avec son origine. <b>kr</b> dépend du risque et des dispersions SN et Sh ; <b>kc</b> cale la méthode sur le comportement observé ; <b>ks</b> réduit l'admissible sur un support peu porteur ; <b>kd</b> tient compte des discontinuités des dalles et des matériaux T4.</p>` },
   eps6: { titre: "ε6", texte: `<p>Déformation qui conduit à la rupture en un million de cycles, à 10 °C et 25 Hz (essai de fatigue NF EN 12697-24). Valeur de la classe du matériau, ou valeur de l'étude de formulation.</p>` },

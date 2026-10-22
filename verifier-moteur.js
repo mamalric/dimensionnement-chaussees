@@ -270,5 +270,25 @@ function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
   verifier("kr de la GLp T2 (Alizé : 0,566961)", kr(R.criteres[2]), 0.566961, 0, 6e-5);
 }
 
+// 10. Surface exacte et cisaillements. En surface, sous la charge, σz vaut exactement -q quelle que soit la
+//     structure ; demi-espace : σr = σθ = -(1 + 2ν) q / 2 sous la charge, σr = -σθ = (1 - 2ν) q a² / (2 r²) hors charge.
+{
+  console.log("\n10. Surface exacte et cisaillements");
+  const q = 0.662, a = 0.125, nu = 0.35;
+  let r = burmister([{ E: 100, nu, h: 0 }], [], { q, a }, [{ z: 0, couche: 0 }], [0, 0.2]);
+  verifier("demi-espace, σz en surface sous la charge", r[0][0].sz, -q, 1e-9);
+  verifier("demi-espace, σr en surface sous la charge", r[0][0].sr, -(1 + 2 * nu) * q / 2, 1e-9);
+  verifier("demi-espace, σr en surface à 0,2 m", r[0][1].sr, (1 - 2 * nu) * q * a * a / (2 * 0.04), 1e-6);
+  verifier("demi-espace, σθ en surface à 0,2 m", r[0][1].st, -(1 - 2 * nu) * q * a * a / (2 * 0.04), 1e-6);
+  // Structure A412 (capture d'Alizé2 2.1.3, centre de la roue) : σYZ dû à l'autre roue du jumelage
+  const C = [{ E: 11000, nu: .35, h: .06 }, { E: 9000, nu: .35, h: .08 }, { E: 15000, nu: .25, h: .35 }, { E: 50, nu: .35, h: 0 }];
+  const P = [[0, 0], [0.06, 0], [0.14, 1], [0.49, 2]].map(([z, couche]) => ({ z, couche }));
+  r = burmister(C, ["collee", "collee", "glissante"], { q, a }, P, [0, 0.375]);
+  verifier("structure A412, σz en surface sous la roue (pression du pneu)", -(r[0][0].sz + r[0][1].sz), 0.662, 1e-6);
+  verifier("Alizé2 2.1.3, σYZ à 0,06 m (base du BBME)", Math.abs(r[1][1].trz), 0.013, 0.03);
+  verifier("Alizé2 2.1.3, σYZ à 0,14 m (base de la GB3)", Math.abs(r[2][1].trz), 0.029, 0.03);
+  verifier("Alizé2 2.1.3, σYZ à 0,49 m (interface glissante)", Math.abs(r[3][1].trz), 0, 0, 5e-4);
+}
+
 console.log(`\n${controles - echecs}/${controles} contrôles conformes${echecs ? `, ${echecs} en échec` : ""}.`);
 process.exitCode = echecs ? 1 : 0;
