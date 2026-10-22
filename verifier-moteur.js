@@ -1,5 +1,5 @@
 // Vérification du moteur de calcul, sans navigateur : node verifier-moteur.js
-// Les scripts de calcul ("moteur", "donnees", "calcul", "gel") sont extraits de index.html et exécutés tels quels,
+// Les scripts de calcul ("moteur", "donnees", "calcul", "gel", "alize") sont extraits de index.html et exécutés tels quels,
 // si bien que c'est bien le code publié qui est contrôlé.
 "use strict";
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -8,11 +8,11 @@ const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 const scripts = [...html.matchAll(/<script(?: id="([^"]*)")?>([\s\S]*?)<\/script>/g)];
 const bloc = id => scripts.find(s => s[1] === id)[2];
 const calcul = bloc("calcul");
-const ctx = { console, Math, JSON, Object, Array, Number, String, Set, Map, Infinity, NaN, isFinite, parseFloat, Float64Array, Error };
+const ctx = { console, Math, JSON, Object, Array, Number, String, Set, Map, Infinity, NaN, isFinite, parseFloat, Float64Array, Error, TextDecoder, DataView, Uint8Array, ArrayBuffer };
 vm.createContext(ctx);
-vm.runInContext([bloc("moteur"), bloc("donnees"), calcul, bloc("gel")].join("\n").replace(/"use strict";/g, "")
-  + "\nthis.api = { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF };", ctx);
-const { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF } = ctx.api;
+vm.runInContext([bloc("moteur"), bloc("donnees"), calcul, bloc("gel"), bloc("alize")].join("\n").replace(/"use strict";/g, "")
+  + "\nthis.api = { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF, lireAlize, etatDepuisAlize };", ctx);
+const { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF, lireAlize, etatDepuisAlize } = ctx.api;
 
 let echecs = 0, controles = 0;
 function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
@@ -212,6 +212,62 @@ function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
   verifier("u(5 %)", fractile(0.05), -1.644854, 1e-6);
   verifier("u(25 %)", fractile(0.25), -0.674490, 1e-6);
   verifier("u(1 %)", fractile(0.01), -2.326348, 1e-6);
+}
+
+// 9. Projet Alizé2 (.zmsp) : lecture, reprise des données et recalcul. Le projet de test a la forme d'un fichier
+//    enregistré par Alizé2 2.1.3 (BBME3 6 / GB3 8 / GLp T2 35 glissante / PF2, MJA 20, 1 % arithmétique, Ambérieu).
+{
+  console.log("\n9. Projet Alizé2 (.zmsp)");
+  // Flux Qt : chaque chaîne précédée de sa longueur en octets, en UTF-16 gros-boutiste ; clés suivies d'un saut de ligne
+  const chaines = ["Alize2\n", "Version 2.1.3\n"];
+  const cle = (k, v) => { chaines.push(k + "\n"); if (v !== undefined) chaines.push(v); };
+  const champs = o => Object.entries(o).forEach(([k, v]) => cle(k, v));
+  const couche = (h, E, nu, mat, type, itf, assise) => {
+    champs({ EpaisseurStructure: h, ModuleStructure: E, NuStructure: nu, BibNameStructure: "NFP98-086 2019", MateriauStructure: mat, MatTypeStructure: type,
+      TempStructure: "15", FreqStructure: "10", InterfStructure: itf, AssiseLayer: assise });
+    cle("EndStructure");
+  };
+  const va = (crit, o) => { champs({ VACritere: crit, VACAM: "0", VAR: "0", VANE: "0", ...o, VACalcAutoNE: "1" }); cle("EndVA"); };
+  champs({ NameProject: "Projet de test", NameAuthor: "", DescriptiveProject: "Chaussée de test" });
+  cle("Mech"); champs({ TitreStructure: "", NbCoucheStructure: "4" });
+  couche("0.06", "11000", "0.35", "eb-bbme3", "bitum", "1", "0");
+  couche("0.08", "9000", "0.35", "eb-gb3", "bitum", "1", "1");
+  couche("0.35", "15000", "0.25", "glp-t2", "trait", "0", "2");
+  couche("40", "50", "0.35", "pf2", "gntSo", "3", "0");
+  champs({ AssiseStructure: "1\t2\t0.43", OptionCharge: "0", TraficMJA: "20", TraficAccGeom: "0.00944287", TraficAccArit: "0.01", TraficService: "20",
+    TraficPl: "159870", TraficConfigAccGeom: "0", TraficConfigAccArit: "1", TraficConfigPl: "0", ShAutomatique: "1", VABegin: "4" });
+  va("1", { VAEpsi6: "100", VAMUnB: "5", VAEDD: "14630", VAETF: "11000", VAHS: "0.43", VASh: "0.025", VASn: "0.25", VAKr: "0.676541", VAKc: "1.1" });
+  va("1", { VAEpsi6: "90", VAMUnB: "5", VAEDD: "11880", VAETF: "9000", VAHS: "0.43", VASh: "0.025", VASn: "0.3", VAKr: "0.649462", VAKc: "1.3" });
+  va("2", { VASigma6: "0.6", VAMUnB: "12", VASh: "0.03", VASn: "1", VAKr: "0.566961", VAKc: "1.5", VAKd: "1.0000000000000000e+00" });
+  va("3", { VAMUnB: "4.5045", VAA: "16000" });
+  cle("Frost"); champs({ TitreStructure: "", IndexLayerZpfStructure: "2", HnQpf: "-1", AnQpf: "14", pSGtQpf: "-1", pSGpQpf: "-1",
+    MeteoIRVal: "270", MeteoIRType: "0", MeteoStationName: "Ambérieu" });
+  const brut = Buffer.concat(chaines.map(t => { const b = Buffer.from(t, "utf16le").swap16(), n = Buffer.alloc(4); n.writeUInt32BE(b.length); return Buffer.concat([n, b]); }));
+  const doc = lireAlize(brut.buffer.slice(brut.byteOffset, brut.byteOffset + brut.length));
+  verifier("couches mécaniques lues, plate-forme comprise", doc.meca.couches.length, 4, 0);
+  verifier("blocs de valeurs admissibles lus", doc.meca.va.length, 4, 0);
+  const { etat } = etatDepuisAlize(doc);
+  const ids = etat.couches.map(c => c.mat).join(" / ");
+  verifier(`matériaux reconnus (${ids})`, ids === "BBME2 / GB3 / GLT2" ? 1 : 0, 1, 0);
+  verifier("interface sous la GLp glissante", etat.couches[2].itf === "glissante" ? 1 : 0, 1, 0);
+  verifier("plate-forme PF2 à 50 MPa", etat.pf.classe === "PF2" && etat.pf.E === 50 ? 1 : 0, 1, 0);
+  verifier("paramètres de matériau à surcharger (aucun)", etat.couches.reduce((s, c) => s + Object.keys(c.p).length + (c.E != null) + (c.nu != null), 0), 0, 0);
+  verifier("station du gel : Ambérieu en hiver exceptionnel (270 °C·jour)", etat.gel.station === "mf|01089001" && etat.gel.hiver === "HE" && etat.gel.ir == null ? 1 : 0, 1, 0);
+  const E = { ...etat, hyp: { q: 0.662, a: 0.125, d: 0.375, ...etat.hyp } };
+  let R = calculer(E);
+  verifier("trafic cumulé sur 20 ans à 1 % arithmétique (Alizé : 159 870 PL)", R.TR.N, 159870, 1e-9);
+  // Capture d'Alizé2 2.1.3 de la même structure, sous la roue, compression positive
+  const roue = (zz, ci) => R.S.find(s => Math.abs(s.z - zz) < 1e-9 && s.couche === ci).roue;
+  verifier("Alizé2 2.1.3, σX à la base du BBME (z = 0,06 m)", -roue(0.06, 0).sL, 0.384, 0.003);
+  verifier("Alizé2 2.1.3, σX à la base de la GLp (z = 0,49 m)", -roue(0.49, 2).sL, -0.414, 0.003);
+  verifier("Alizé2 2.1.3, σY à la base de la GLp", -roue(0.49, 2).sT, -0.368, 0.003);
+  // kr enregistrés par Alizé (risque vide, u = -2,40) : même Sh (2,5 cm pour 43 cm d'assise) et même -1/b de la GLp
+  E.hyp.risqueMB = E.hyp.risqueMTLH = 0.8197529;
+  R = calculer(E);
+  const kr = c => +c.adm.facteurs.find(f => f[0] === "kr")[1].replace(",", ".");
+  verifier("kr du BBME3 (Alizé : 0,676541)", kr(R.criteres[0]), 0.676541, 0, 6e-5);
+  verifier("kr de la GB3 (Alizé : 0,649462)", kr(R.criteres[1]), 0.649462, 0, 6e-5);
+  verifier("kr de la GLp T2 (Alizé : 0,566961)", kr(R.criteres[2]), 0.566961, 0, 6e-5);
 }
 
 console.log(`\n${controles - echecs}/${controles} contrôles conformes${echecs ? `, ${echecs} en échec` : ""}.`);

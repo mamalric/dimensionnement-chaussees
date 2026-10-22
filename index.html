@@ -14,7 +14,7 @@
 <meta property="og:title" content="Dimensionnement des chaussées">
 <meta property="og:description" content="Structures de chaussée selon la méthode rationnelle française (NF P98-086) : calcul multicouche de Burmister et vérification à la fatigue.">
 <meta property="og:url" content="https://mamalric.github.io/dimensionnement-chaussees/">
-<meta property="og:image" content="https://mamalric.github.io/dimensionnement-chaussees/apercu.jpg?v=2">
+<meta property="og:image" content="https://mamalric.github.io/dimensionnement-chaussees/apercu.jpg?v=3">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -23,10 +23,10 @@
 
 <!-- Favicon : SVG pour les navigateurs récents, PNG et ICO pour les autres et pour les messageries.
      Le paramètre ?v= change à chaque nouveau dessin : les navigateurs gardent sinon l'ancien en cache. -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
-<link rel="icon" href="favicon.ico?v=2" sizes="48x48">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3">
+<link rel="icon" href="favicon.ico?v=3" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
 <meta name="theme-color" content="#7da32f">
 <style>
 /* Charte des outils B27, reprise de la Calculette ECS, du Sélectionneur de radiateurs et des
@@ -188,7 +188,7 @@ header .actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-c
   background:var(--papier-2);border-bottom:1px solid var(--ligne);
   display:flex;align-items:center;gap:9px;flex-wrap:wrap;
 }
-.panel h2 .droite{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:400}
+.panel h2 .droite{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:400;flex-wrap:wrap;justify-content:flex-end}
 .panel .body{padding:16px}
 .badge{
   display:inline-block;padding:1px 9px;border-radius:11px;
@@ -436,6 +436,8 @@ th .btn-aide{width:15px;height:15px;margin-left:4px}
 .modale-corps{padding:16px 18px;overflow:auto;max-height:calc(88vh - 56px);font-size:13px}
 .stats-groupe{margin:0 0 18px}
 .stats-groupe:last-child{margin-bottom:0}
+.liste-import{margin:0;padding-left:18px;font-size:13px;color:var(--encre-2);display:grid;gap:4px}
+.stats-groupe .note{margin:0 0 6px}
 .stats-groupe h3{margin:0 0 8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--discret);display:flex;align-items:center;gap:6px}
 .stats-liste{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;margin:0}
 .stats-liste dt{color:var(--encre-2)}
@@ -511,10 +513,10 @@ table.facteurs td:nth-child(2){white-space:nowrap}
   </div>
   <span class="espace"></span>
   <div class="actions noprint">
-    <button type="button" class="btn sec" id="btnOuvrir" data-ico="ouvrir" title="Ouvrir un calcul enregistré (.json)">Ouvrir</button>
+    <button type="button" class="btn sec" id="btnOuvrir" data-ico="ouvrir" title="Ouvrir un calcul enregistré (.json) ou un projet Alizé2 (.zmsp)">Ouvrir</button>
     <button type="button" class="btn sec" id="btnEnregistrer" data-ico="telecharger" title="Enregistrer le calcul dans un fichier .json">Enregistrer</button>
     <button type="button" class="btn sec" id="btnImprimer" data-ico="imprimante" title="Imprimer ou enregistrer la note de calcul en PDF">Note de calcul</button>
-    <input type="file" id="fichier" accept=".json,application/json" hidden>
+    <input type="file" id="fichier" accept=".json,.zmsp,application/json" hidden>
     <button type="button" class="bouton-icone" id="btnTheme" aria-label="Changer de thème"></button>
     <button type="button" class="bouton-icone" id="btnApropos" data-ico="engrenage" aria-label="À propos et sources" title="À propos de l'outil"></button>
   </div>
@@ -537,6 +539,15 @@ table.facteurs td:nth-child(2){white-space:nowrap}
     <button type="button" class="bouton-icone" id="btnAproposFermer" data-ico="fermer" aria-label="Fermer"></button>
   </div>
   <div class="modale-corps" id="aproposCorps"></div>
+</dialog>
+
+<dialog id="dlgImport" class="modale noprint" aria-labelledby="dlgImportTitre">
+  <div class="modale-tete">
+    <h2 id="dlgImportTitre" data-ico="ouvrir" data-ico-taille="15">Projet Alizé repris</h2>
+    <span class="espace"></span>
+    <button type="button" class="bouton-icone" id="btnImportFermer" data-ico="fermer" aria-label="Fermer"></button>
+  </div>
+  <div class="modale-corps" id="importCorps"></div>
 </dialog>
 
 <div class="wrap">
@@ -699,6 +710,10 @@ table.facteurs td:nth-child(2){white-space:nowrap}
   <section class="panel long">
     <h2 data-ico="tableau"><span data-aide="sollicitations">Sollicitations calculées</span>
       <span class="droite noprint">
+        <span class="segments" id="convSolli" role="group" aria-label="Convention de signe">
+          <button type="button" data-v="outil" aria-pressed="true" title="Convention de l'outil : traction positive, axes T (transversal) et L (longitudinal)">Outil</button>
+          <button type="button" data-v="alize" aria-pressed="false" title="Convention d'Alizé : compression positive, X dans le sens de circulation, Y transversal">Alizé</button>
+        </span>
         <span class="segments" id="posSolli" role="group" aria-label="Position">
           <button type="button" data-v="max" aria-pressed="true">Maximum</button>
           <button type="button" data-v="roue" aria-pressed="false">Sous la roue</button>
@@ -709,7 +724,7 @@ table.facteurs td:nth-child(2){white-space:nowrap}
     <div class="body">
       <div class="table-defile">
         <table class="solli">
-          <thead><tr><th>Profondeur</th><th>ε<sub>T</sub> µdef</th><th>ε<sub>L</sub> µdef</th><th>ε<sub>z</sub> µdef</th><th>σ<sub>T</sub> MPa</th><th>σ<sub>L</sub> MPa</th><th>σ<sub>z</sub> MPa</th></tr></thead>
+          <thead><tr id="teteSolli"><th>Profondeur</th><th>ε<sub>T</sub> µdef</th><th>ε<sub>L</sub> µdef</th><th>ε<sub>z</sub> µdef</th><th>σ<sub>T</sub> MPa</th><th>σ<sub>L</sub> MPa</th><th>σ<sub>z</sub> MPa</th></tr></thead>
           <tbody id="corpsSolli"></tbody>
         </table>
       </div>
@@ -1026,7 +1041,7 @@ const MATERIAUX = [
   // itf : interface usuelle avec une couche hydraulique posée dessous (base sur fondation).
   { id: "GCT3", nom: "GC T3", libelle: "Grave-ciment ou grave liant hydraulique routier, T3", famille: "hydraulique", E: 23000, nu: 0.25, sig6: 0.75, invb: 15, SN: 1, Sh: 0.03, kc: 1.4, kd: 1, itf: "semi" },
   { id: "GCT4", nom: "GC T4", libelle: "Grave-ciment ou grave liant hydraulique routier, T4", famille: "hydraulique", E: 25000, nu: 0.25, sig6: 1.2, invb: 15, SN: 1, Sh: 0.03, kc: 1.4, kd: 1 / 1.25, itf: "glissante" },
-  { id: "GLT2", nom: "GL T2", libelle: "Grave-laitier granulé, ou prébroyé activé à la chaux, T2", famille: "hydraulique", E: 15000, nu: 0.25, sig6: 0.6, invb: 12.5, SN: 1, Sh: 0.03, kc: 1.5, kd: 1, itf: "collee" },
+  { id: "GLT2", nom: "GL T2", libelle: "Grave-laitier granulé, ou prébroyé activé à la chaux, T2", famille: "hydraulique", E: 15000, nu: 0.25, sig6: 0.6, invb: 12, SN: 1, Sh: 0.03, kc: 1.5, kd: 1, itf: "collee" },
   { id: "GLT3", nom: "GLp T3", libelle: "Grave-laitier prébroyé, activant sulfatique ou calcique, T3", famille: "hydraulique", E: 20000, nu: 0.25, sig6: 0.7, invb: 13.7, SN: 1, Sh: 0.03, kc: 1.5, kd: 1, itf: "semi" },
   { id: "BCRT5", nom: "BCR T5", libelle: "Béton compacté routier, T5", famille: "hydraulique", E: 28000, nu: 0.25, sig6: 1.85, invb: 15, SN: 1, Sh: 0.03, kc: 1.5, kd: 1 / 1.25, itf: "semi" },
   { id: "SCT2", nom: "SC T2", libelle: "Sable-ciment, T2", famille: "hydraulique", E: 12000, nu: 0.25, sig6: 0.5, invb: 12, SN: 0.8, Sh: 0.025, kc: 1.5, kd: 1, itf: "semi" },
@@ -1355,6 +1370,14 @@ function admissibleSol(TR, H, facteur = 1) {
   return { crit: "ez", valeur: v, ne, facteurs: f, formule: (facteur !== 1 ? fr(facteur, 1) + " × " : "") + "ε<sub>z,adm</sub> = A × NE<sup>-0,222</sup>" };
 }
 
+// Épaisseur d'assise qui fixe Sh des bitumineux : toutes les couches entre la couche de surface et la
+// plate-forme, liées ou non, comme l'assise par défaut d'Alizé2. Une couche de surface en matériau d'assise
+// (GB, EME, MTLH) compte ; la couche de forme appartient à la plate-forme et ne compte pas.
+function epaisseurAssise(ui) {
+  const debut = ui.length > 1 && ui[0].famille === "bitumineux" && !ui[0].m.assise ? 1 : 0;
+  return ui.slice(debut).filter(x => !x.m.critereEz).reduce((s, x) => s + x.h, 0);
+}
+
 // Valeur admissible d'une couche liée, avec le détail de chaque facteur pour la note de calcul
 function admissible(u, P, H, voie) {
   const TR = P.TR, crit = critereCouche(u, P.ui);
@@ -1373,10 +1396,7 @@ function admissible(u, P, H, voie) {
   if (crit === "et") {
     const ne = TR.ne.bitumineux, m = u.m, theta = H.theta ?? TETA_REF;
     const E10 = moduleTheta(m, 10), Et = moduleTheta(m, theta);
-    // Sh porte sur l'épaisseur d'assise bitumineuse : le paquet sans sa couche de roulement
-    const [a0, b0] = paquetBitumineux(P.ui, u.idx);
-    const debut = b0 > a0 && !P.ui[a0].m.assise ? a0 + 1 : a0;
-    const hAssise = P.ui.slice(debut, b0 + 1).reduce((s, x) => s + x.h, 0);
+    const hAssise = epaisseurAssise(P.ui);
     const Sh = u.c.p && u.c.p.Sh != null ? u.c.p.Sh : shBitumineux(hAssise);
     const delta = Math.sqrt(SN ** 2 + (C_EPAISSEUR / b) ** 2 * Sh ** 2);
     const kr = 10 ** (-u_ * b * delta), kth = Math.sqrt(E10 / Et), eps6 = param(u.c, "eps6");
@@ -4119,14 +4139,198 @@ function verificationGel(E) {
 }
 </script>
 
+<script id="alize">
+"use strict";
+// ---------- Projet Alizé2 (.zmsp) : reprise des données d'entrée ----------
+// Le fichier est un flux Qt : chaque chaîne est précédée de sa longueur en octets (entier 32 bits gros-boutiste)
+// et codée en UTF-16 gros-boutiste. Une clé finit par un saut de ligne et sa valeur suit ; une clé suivie d'une
+// autre clé marque une section (Mech, Frost) ou la fin d'un bloc (EndStructure, EndVA).
+function chainesQt(buf) {
+  const v = new DataView(buf), dec = new TextDecoder("utf-16be"), out = [];
+  for (let i = 0; i + 4 <= v.byteLength;) {
+    const n = v.getUint32(i); i += 4;
+    if (n === 0xFFFFFFFF) { out.push(""); continue; }
+    if (n % 2 || i + n > v.byteLength) throw new Error("flux Qt illisible");
+    out.push(dec.decode(new Uint8Array(buf, i, n))); i += n;
+  }
+  return out;
+}
+
+// Projet en sections : en-tête, mécanique (couches, un bloc de valeurs admissibles par couche) et gel
+function lireAlize(buf) {
+  const ch = chainesQt(buf);
+  if (!ch.length || ch[0].trim() !== "Alize2") throw new Error("ce n'est pas un projet Alizé2");
+  const doc = { version: (ch[1] || "").trim(), entete: {}, meca: { champs: {}, couches: [], va: [] }, gel: { champs: {}, couches: [] } };
+  let sec = null, cur = null;
+  for (let k = 2; k < ch.length; k++) {
+    if (!ch[k].endsWith("\n")) continue;
+    const cle = ch[k].trim();
+    const val = ch[k + 1] != null && !ch[k + 1].endsWith("\n") ? ch[++k] : null;
+    if (cle === "Mech" || cle === "Frost") { sec = cle === "Mech" ? doc.meca : doc.gel; cur = null; continue; }
+    if (cle === "EndStructure" || cle === "EndVA") { cur = null; continue; }
+    if (sec && cle === "EpaisseurStructure") sec.couches.push(cur = {});
+    if (sec && sec.va && cle === "VACritere") sec.va.push(cur = {});
+    if (val != null) (cur || (sec ? sec.champs : doc.entete))[cle] = val;
+  }
+  return doc;
+}
+
+// Matériau de la bibliothèque qui correspond à un matériau Alizé : d'après son nom, sinon d'après sa famille
+function materiauAlize(c, va) {
+  const n = String(c.MateriauStructure || "").toLowerCase().replace(/[^a-z0-9]/g, ""), t3 = /t3|3$/.test(n), t4 = /t4|4$/.test(n);
+  const essais = {
+    bitum: [[/bbsg1/, "BBSG1"], [/bbme1/, "BBME1"], [/bbme/, "BBME2"], [/bbtm|bbdr|bbum/, "BBTM"], [/bbm(?!e)/, "BBM"], [/bb/, "BBSG2"],
+            [/eme1/, "EME1"], [/eme/, "EME2"], [/gb2/, "GB2"], [/gb4/, "GB4"], [/gb/, "GB3"]],
+    trait: [[/bcr/, "BCRT5"], [/glhr|gc|gh/, t4 ? "GCT4" : "GCT3"], [/gl/, t3 ? "GLT3" : "GLT2"], [/sc/, t3 ? "SCT3" : "SCT2"], [/sl/, t3 ? "SLT3" : "SLT2"]],
+    beton: [[/bc5.*g|goujon/, "BC5G"], [/bc5/, "BC5"], [/bc4/, "BC4"], [/bc2|bcm|maigre/, "BC2"]],
+    gntSo: [[/gnt1|gnta/, "GNT1"], [/gnt3|gntc/, "GNT3"], [/gnt/, "GNT2"], [/pf|sol|forme|cdf/, "CDF"]]
+  };
+  const type = c.MatTypeStructure === "soTrait" ? "trait" : c.MatTypeStructure;
+  const trouve = (essais[type] || []).find(([re]) => re.test(n));
+  if (trouve) return { id: trouve[1], exact: true };
+  const parDefaut = { bitum: va && +va.VAEpsi6 > 0 ? (c.AssiseLayer > 0 ? "GB3" : "BBSG2") : "BBM", trait: "GCT3", beton: "BC5", gntSo: "CDF" };
+  return { id: parDefaut[type] || "CDF", exact: false };
+}
+
+const sansAccent = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+// Station Météo-France du nom donné par Alizé (stations du catalogue d'abord, puis séries les plus longues)
+function stationAlize(nom) {
+  const cle = sansAccent(nom);
+  if (!cle) return null;
+  const mot = cle.split(" ")[0];
+  const rang = r => (r[12] != null ? 1e6 : 0) + (r[6] || 0) + (r[9] || 0);
+  const parmi = f => STATIONS_MF.filter(f).sort((x, y) => rang(y) - rang(x))[0] || null;
+  return parmi(r => sansAccent(r[1]) === cle) || parmi(r => sansAccent(r[1]).includes(cle) || cle.includes(sansAccent(r[1])))
+    || (mot.length >= 4 ? parmi(r => r[12] != null && sansAccent(r[1]).split(" ")[0] === mot) : null);
+}
+
+// État de l'outil tiré d'un projet Alizé, avec ce qui a été repris et ce qui reste à vérifier
+function etatDepuisAlize(doc) {
+  const M = doc.meca.champs, notes = [], repris = [];
+  const val = x => { const v = nb(x); return v != null && isFinite(v) ? v : null; };
+  const proche = (a, b, tol = 1e-6) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
+  const lignes = doc.meca.couches;
+  if (lignes.length < 2) throw new Error("structure mécanique absente du projet");
+  const ITF = { "1": "collee", "0": "glissante", "2": "semi" };
+  const NOM_ITF = { collee: "collée", glissante: "glissante", semi: "semi-collée" };
+  const theta = val((lignes.find(c => c.MatTypeStructure === "bitum") || {}).TempStructure) ?? TETA_REF;
+  const etat = {
+    projet: { affaire: String(doc.entete.DescriptiveProject || doc.entete.NameProject || "").trim(), voie: "" },
+    hyp: { risqueMB: null, risqueMTLH: null, theta, charge: "jumelage", coefA: "auto" },
+    couches: [], modele: ""
+  };
+  if (!proche(theta, TETA_REF)) notes.push(["warn", `Température des enrobés : ${fr(theta, 0)} °C dans Alizé, reprise pour toute la structure.`]);
+  if ((M.OptionCharge || "0") !== "0") notes.push(["warn", "Alizé utilise une autre charge que le jumelage de référence : l'outil garde le jumelage de 65 kN, à adapter dans les hypothèses."]);
+
+  // Couches : la dernière est la plate-forme
+  const fam = { "1": "bitumineux", "2": "hydraulique", "3": "sol" };
+  const cam = {}, risque = {}, neSaisi = [];
+  lignes.slice(0, -1).forEach((c, i) => {
+    const va = doc.meca.va[i] || {}, crit = String(va.VACritere || "");
+    const { id, exact } = materiauAlize(c, va), m = MAT[id];
+    const h = val(c.EpaisseurStructure) * 100, Ea = val(c.ModuleStructure), nu = val(c.NuStructure);
+    const couche = { mat: id, h: Math.round(h * 10) / 10, E: null, nu: null, itf: ITF[c.InterfStructure] || "collee", p: {} };
+    const Elib = m.famille === "bitumineux" ? moduleTheta(m, theta) : m.E;
+    if (Ea != null && (m.famille === "non_lie" || Elib == null || !proche(Ea, Elib, 0.005))) couche.E = Ea;
+    if (nu != null && !proche(nu, m.nu, 1e-3)) couche.nu = nu;
+    // Paramètres du bloc de valeurs admissibles qui diffèrent de la bibliothèque de l'outil
+    const diff = [];
+    const comparer = (cleVA, cle, nom, transf = x => x) => {
+      let v = val(va[cleVA]);
+      if (v == null || v <= 0 || m[cle] == null) return;
+      v = transf(v);
+      if (!proche(v, m[cle], 1e-4)) { couche.p[cle] = v; diff.push(`${nom} ${fr(v, v < 1 ? 3 : 1)} (bibliothèque de l'outil : ${fr(m[cle], m[cle] < 1 ? 3 : 1)})`); }
+    };
+    if (crit === "1") {
+      comparer("VAEpsi6", "eps6", "ε6"); comparer("VAMUnB", "invb", "-1/b"); comparer("VASn", "SN", "SN"); comparer("VAKc", "kc", "kc");
+      if (M.ShAutomatique === "0" && val(va.VASh) != null) { couche.p.Sh = val(va.VASh); diff.push(`Sh ${fr(couche.p.Sh * 100, 1)} cm imposé`); }
+      const E10 = val(va.VAEDD);
+      if (E10 && !proche(E10, moduleTheta(m, 10), 0.005)) notes.push(["warn", `Couche ${i + 1} : E(10 °C) de ${grouper(E10)} MPa dans Alizé, ${grouper(moduleTheta(m, 10))} MPa dans l'outil (non repris).`]);
+    }
+    if (crit === "2") {
+      comparer("VASigma6", "sig6", "σ6"); comparer("VAMUnB", "invb", "-1/b"); comparer("VASn", "SN", "SN"); comparer("VASh", "Sh", "Sh");
+      comparer("VAKc", "kc", "kc"); comparer("VAKd", "kd", "kd", x => x > 1 ? 1 / x : x);
+    }
+    if (diff.length) notes.push(["info", `Couche ${i + 1} (${m.nom}) : paramètres d'Alizé repris, ${diff.join(", ")}.`]);
+    if (!exact) notes.push(["warn", `Couche ${i + 1} : matériau Alizé "${c.MateriauStructure}" sans équivalent direct, rapproché de ${m.nom} ; vérifier ses paramètres.`]);
+    // CAM, risque et NE saisis dans Alizé, par famille de critère
+    const f = fam[crit];
+    if (f) {
+      const vc = val(va.VACAM), vr = val(va.VAR), vn = val(va.VANE);
+      if (vc > 0 && cam[f] == null) cam[f] = vc;
+      if (vr > 0 && f !== "sol" && risque[f] == null) risque[f] = vr;
+      if (va.VACalcAutoNE === "0" && vn > 0) neSaisi.push(vn);
+    }
+    etat.couches.push(couche);
+    repris.push(`${i + 1}. ${c.MateriauStructure} → ${m.nom}, ${fr(couche.h, 1)} cm, ${grouper(Ea)} MPa, ν ${fr(nu, 2)}, interface dessous ${NOM_ITF[couche.itf]}`);
+  });
+
+  // Plate-forme
+  const pf = lignes[lignes.length - 1], Epf = val(pf.ModuleStructure), nuPf = val(pf.NuStructure) ?? 0.35;
+  const classe = (PLATEFORMES.find(p => p.E != null && proche(p.E, Epf)) || { id: "perso" }).id;
+  etat.pf = { classe, E: Epf, nu: nuPf };
+  repris.push(`Plate-forme : ${pf.MateriauStructure || "sol"}, ${grouper(Epf)} MPa, ν ${fr(nuPf, 2)}${classe !== "perso" ? ` (${classe})` : ""}`);
+
+  // Trafic : MJA, durée et accroissement ; à défaut, le trafic cumulé saisi
+  const mja = val(M.TraficMJA), p = val(M.TraficService), npl = val(M.TraficPl), arith = M.TraficConfigAccArit === "1";
+  const tau = (arith ? val(M.TraficAccArit) : val(M.TraficAccGeom)) ?? 0;
+  const tr = { direct: false, voie: "rase", mja, p: p || 20, tau: Math.round(tau * 1e6) / 1e4, loi: arith ? "arith" : "geo", cam: { bitumineux: cam.bitumineux ?? null, hydraulique: cam.hydraulique ?? null, sol: cam.sol ?? null } };
+  if (!(mja > 0 && p > 0) && npl > 0) { tr.tau = 0; tr.loi = "geo"; tr.mja = npl / (365 * tr.p); notes.push(["info", `Trafic cumulé saisi directement dans Alizé (${grouper(npl)} PL) : MJA équivalent de ${fr(tr.mja, 1)} PL/j sur ${tr.p} ans sans croissance.`]); }
+  const N = trafic(tr).N;
+  repris.push(`Trafic : MJA ${fr(tr.mja, tr.mja % 1 ? 1 : 0)} PL/j, ${tr.p} ans, croissance ${tr.loi === "arith" ? "arithmétique" : "géométrique"} de ${fr(tr.tau, 2)} %, soit ${grouper(N)} PL cumulés${npl > 0 ? ` (Alizé : ${grouper(npl)})` : ""}`);
+  if (npl > 0 && !proche(N, npl, 0.002)) notes.push(["warn", `Trafic cumulé : ${grouper(N)} PL dans l'outil contre ${grouper(npl)} dans Alizé.`]);
+  if (neSaisi.length) {
+    tr.direct = true; tr.ne = neSaisi[0];
+    notes.push(["info", `NE saisi dans Alizé : ${grouper(tr.ne)} essieux de 130 kN, repris pour tous les critères.`]);
+    if (neSaisi.some(v => !proche(v, neSaisi[0], 1e-6))) notes.push(["warn", "Alizé a des NE différents selon les couches : l'outil n'en garde qu'un (le premier)."]);
+  }
+  etat.trafic = tr;
+  etat.hyp.risqueMB = risque.bitumineux ?? null; etat.hyp.risqueMTLH = risque.hydraulique ?? null;
+  const vides = [!Object.keys(cam).length && !neSaisi.length ? "CAM" : null, !Object.keys(risque).length ? "risque" : null].filter(Boolean);
+  if (vides.length) notes.push(["warn", `${vides.join(" et ")} vides dans le projet Alizé (onglet Valeurs admissibles non rempli) : l'outil prend les valeurs usuelles de la NF P98-086 pour une voie péri-urbaine ou de rase campagne. Pour comparer les valeurs admissibles, saisir dans Alizé les mêmes valeurs que l'outil (onglet Données).`]);
+
+  // Gel : station et indice de référence ; plate-forme seulement si Alizé l'a renseignée
+  const G = doc.gel.champs, ir = val(G.MeteoIRVal);
+  if (doc.gel.couches.length || ir != null) {
+    const gel = { actif: true, periode: "A", site: null, ir: null, hiver: G.MeteoIRType === "1" ? "HRNE" : "HE" };
+    const st = stationAlize(G.MeteoStationName);
+    if (st) {
+      gel.station = "mf|" + st[0]; gel.dep = st[2];
+      const HE = st[12] ?? st[7], HR = st[13] ?? st[8];
+      if (ir != null && proche(ir, HE)) gel.hiver = "HE";
+      else if (ir != null && proche(ir, HR)) gel.hiver = "HRNE";
+      else if (ir != null) gel.ir = ir;
+      repris.push(`Gel : station ${st[1]} (${st[2]}), ${gel.hiver === "HE" ? "hiver exceptionnel" : "hiver rigoureux non exceptionnel"}, IR ${grouper(gel.ir ?? (gel.hiver === "HE" ? HE : HR))} °C·jour${ir != null ? ` (Alizé : ${grouper(ir)})` : ""}`);
+    } else if (ir != null) {
+      gel.ir = ir;
+      repris.push(`Gel : indice de référence ${grouper(ir)} °C·jour${G.MeteoStationName ? ` (station Alizé "${G.MeteoStationName}" introuvable, indice saisi)` : ""}`);
+    }
+    const pSGp = val(G.pSGpQpf), pSGt = val(G.pSGtQpf), hn = val(G.HnQpf), an = val(G.AnQpf);
+    if (pSGp >= 0) gel.pSGp = pSGp;
+    if (pSGt >= 0) gel.pSGt = pSGt;
+    if (pSGp >= 0 || pSGt >= 0) gel.sol = pSGp >= 0 && pSGt >= 0 ? "SGpSGt" : pSGp >= 0 ? "SGp" : "SGt";
+    if (hn > 0) {
+      gel.hn = Math.round((hn < 5 ? hn * 100 : hn) * 10) / 10;
+      const a = AN_MATERIAUX.find(x => an != null && proche(x.an * 100, an < 1 ? an * 100 : an));
+      if (a) gel.an = a.id;
+    }
+    if (!(pSGp >= 0 || pSGt >= 0)) notes.push(["info", "Plate-forme au gel non renseignée dans Alizé (pente p de l'essai de gonflement, non gélifs) : valeurs par défaut de l'outil, à compléter dans l'onglet Gel-dégel."]);
+    etat.gel = gel;
+  }
+  return { etat, notes, repris, version: doc.version };
+}
+</script>
+
 <script>
 "use strict";
 // ---------- Icônes, thème, panneau "À propos" (mêmes mécaniques que les autres outils B27) ----------
 
-// Tracés Lucide (licence ISC), dessinés en trait sur une grille de 24 ; "chaussee" est propre à l'outil
+// Tracés Lucide (licence ISC), dessinés en trait sur une grille de 24 ; "chaussee" et "porteur" sont propres à l'outil
+// (camion porteur de profil, caisse et cabine, roues posées sur y = 12,9)
 const TRACES_ICONES = {
-  chaussee: '<g stroke-width="1.5"><path d="M2.5 11V9.2a1.2 1.2 0 0 1 .8-1.1L6 7l2.2-3a1.2 1.2 0 0 1 1-.5h5.6a1.2 1.2 0 0 1 1 .5L18 7l2.7 1.1a1.2 1.2 0 0 1 .8 1.1V11"/><path d="M2.5 11h2"/><path d="M9 11h6"/><path d="M19.5 11h2"/><circle cx="6.8" cy="11" r="1.9"/><circle cx="17.2" cy="11" r="1.9"/><path d="M2 14h20"/><path d="M2 17.5h20"/><path d="M2 21h3"/><path d="M10.5 21h3"/><path d="M19 21h3"/></g>',
-  voiture: '<path d="M2.5 11V9.2a1.2 1.2 0 0 1 .8-1.1L6 7l2.2-3a1.2 1.2 0 0 1 1-.5h5.6a1.2 1.2 0 0 1 1 .5L18 7l2.7 1.1a1.2 1.2 0 0 1 .8 1.1V11"/><path d="M2.5 11h2"/><path d="M9 11h6"/><path d="M19.5 11h2"/><circle cx="6.8" cy="11" r="1.9"/><circle cx="17.2" cy="11" r="1.9"/>',
+  chaussee: '<g stroke-width="1.5"><path d="M13 11V3.5a1 1 0 0 0-1-1H3.5a1 1 0 0 0-1 1V11"/><path d="M15 11V5.5a1 1 0 0 1 1-1h2.9a1 1 0 0 1 .93.63l1.6 3.9a1 1 0 0 1 .07.37V11"/><path d="M2.5 11h2"/><path d="M9.1 11h6.8"/><path d="M20.5 11h1"/><circle cx="6.8" cy="11" r="1.9"/><circle cx="18.2" cy="11" r="1.9"/><path d="M2 14h20"/><path d="M2 17.5h20"/><path d="M2 21h3"/><path d="M10.5 21h3"/><path d="M19 21h3"/></g>',
+  porteur: '<path d="M13 11V3.5a1 1 0 0 0-1-1H3.5a1 1 0 0 0-1 1V11"/><path d="M15 11V5.5a1 1 0 0 1 1-1h2.9a1 1 0 0 1 .93.63l1.6 3.9a1 1 0 0 1 .07.37V11"/><path d="M2.5 11h2"/><path d="M9.1 11h6.8"/><path d="M20.5 11h1"/><circle cx="6.8" cy="11" r="1.9"/><circle cx="18.2" cy="11" r="1.9"/>',
   flocon: '<path d="m10 20-1.25-2.5L6 18"/><path d="M10 4 8.75 6.5 6 6"/><path d="m14 20 1.25-2.5L18 18"/><path d="m14 4 1.25 2.5L18 6"/><path d="m17 21-3-6h-4"/><path d="m17 3-3 6 1.5 3"/><path d="M2 12h6.5L10 9"/><path d="m20 10-1.5 2 1.5 2"/><path d="M22 12h-6.5L14 15"/><path d="m4 10 1.5 2L4 14"/><path d="m7 21 3-6-1.5-3"/><path d="m7 3 3 6h4"/>',
   repere: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
   horloge: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
@@ -4196,6 +4400,8 @@ function initTheme() {
 
 // Journal des versions : deux ou trois phrases par version, le détail va dans JOURNAL.md
 const CHANGELOG = [
+  { v: "v4", date: "2026-10-22", titre: "Projets Alizé et camion",
+    texte: "Ouverture directe d'un projet Alizé2 (.zmsp) : structure, interfaces, plate-forme, trafic, paramètres de matériaux et station de gel repris, avec le compte rendu de ce qui reste à vérifier. Sollicitations affichables dans la convention d'Alizé (compression positive, axes X et Y). Sh des enrobés calculé sur toute l'épaisseur d'assise (les couches entre la couche de surface et la plate-forme) et -1/b de la grave-laitier T2 à 12, comme Alizé2 et sa bibliothèque NF P98-086 2019 : les kr d'un projet Alizé2 sont retrouvés à la quatrième décimale. Le logo, la coupe, le favicon et l'aperçu montrent un camion au lieu d'une voiture." },
   { v: "v3", date: "2026-10-22", titre: "Indice de gel de tous les sites",
     texte: "L'indice de gel de référence se lit sur 2433 stations Météo-France au lieu des seules 83 du catalogue de 1998 : indices calculés hors ligne sur les relevés quotidiens ouverts de Météo-France avec les règles du catalogue, qu'ils redonnent à quelques °C·jour près, valeurs officielles conservées pour les stations du catalogue. Recherche de la commune ou de l'adresse du projet, stations classées par distance avec leur altitude, période 1951-1997 ou 1951-2026. Aucun service de climat n'est interrogé." },
   { v: "v2", date: "2026-10-22", titre: "Gel-dégel, onglets et aides",
@@ -4238,7 +4444,7 @@ function ouvrirApropos() {
       <p><b>Modèle.</b> La chaussée est un massif multicouche élastique linéaire (Burmister) : couches homogènes et isotropes d'épaisseur finie sur un sol semi-infini, interfaces collées ou glissantes. Le problème est résolu exactement en transformée de Hankel, l'intégrale étant évaluée par Gauss-Legendre. Comme dans Alizé, les sollicitations sont lues sur deux verticales, sous une roue et au milieu du jumelage, en haut et en bas de chaque couche, et la plus défavorable est retenue. Une interface semi-collée prend la moyenne des calculs collé et glissant.</p>
       <p><b>Trafic.</b> NE = 365 × MJA × C × CAM, avec C = [(1 + τ)<sup>p</sup> - 1] / τ en croissance géométrique ou p [1 + (p - 1) τ / 2] en croissance arithmétique. Les CAM et les risques usuels sont ceux de l'annexe C de la NF P98-086, selon la classe de trafic, le type de voie et, pour les risques des matériaux hydrauliques, le type de structure.</p>
       <p><b>Critères.</b> Fatigue des matériaux bitumineux : ε<sub>t</sub> à la base de chaque couche qui a une loi de fatigue (les couches de roulement BBM et BBTM n'en ont pas) ; sur une chaussée souple, simple couche de surface posée sur GNT, seule la plate-forme est vérifiée. Fatigue des matériaux hydrauliques et des bétons : σ<sub>t</sub> à la base. Orniérage : ε<sub>z</sub> en tête de la plate-forme, avec A = 16 000 µdef sous 250 000 essieux et 12 000 au-delà, et en tête d'une couche de forme modélisée. Une GNT posée sur une couche traitée (structure inverse) prend 480 MPa et se vérifie en ε<sub>z</sub> à 1,2 fois l'admissible du sol.</p>
-      <p><b>Coefficients.</b> kr = 10<sup>-u b δ</sup>, δ = √(SN² + (c Sh / b)²), c = 2 m⁻¹ ; pour les bitumineux, Sh suit l'épaisseur d'assise bitumineuse, couche de roulement exclue. ks selon le module du support de la couche liée : 1/1,2 sous 50 MPa, 1/1,1 jusqu'à 80, 1/1,065 jusqu'à 120, 1 au-delà ; une assise bitumineuse compte comme un tout.</p>
+      <p><b>Coefficients.</b> kr = 10<sup>-u b δ</sup>, δ = √(SN² + (c Sh / b)²), c = 2 m⁻¹ ; pour les bitumineux, Sh suit l'épaisseur totale d'assise, c'est-à-dire toutes les couches entre la couche de surface et la plate-forme, comme l'assise par défaut d'Alizé2. ks selon le module du support de la couche liée : 1/1,2 sous 50 MPa, 1/1,1 jusqu'à 80, 1/1,065 jusqu'à 120, 1 au-delà ; une assise bitumineuse compte comme un tout.</p>
       <p><b>Modules.</b> Les bitumineux prennent leur module à la température équivalente (15 °C en métropole), interpolé dans le tableau E(θ). Une GNT en couche de base (sous la seule couche de roulement) prend le module de sa catégorie sur 15 cm, ou 20 cm au-delà de 100 000 essieux ; la fondation est découpée en tranches de 25 cm depuis la plate-forme, chacune à k fois le module de ce qui la porte (k = 3, 2,5 ou 2), plafonnée au module de la catégorie, ou à 360 MPa sous une assise bitumineuse.</p>
       <p><b>Gel-dégel.</b> Quantité de gel admissible au niveau de la plate-forme Q<sub>PF</sub> = Q<sub>g</sub> + Q<sub>ng</sub> + Q<sub>M</sub> (guide de 1994) : Q<sub>g</sub> selon la pente p de l'essai de gonflement du sol gélif, Q<sub>ng</sub> = A<sub>n</sub> h<sub>n</sub>² / (h<sub>n</sub> + 10) pour les matériaux non gélifs de la plate-forme, Q<sub>M</sub> = e / 10 pour une chaussée de plus de 20 cm de matériaux liés, e étant l'épaisseur de sol dégelé (module divisé par 10) qui accroît de 5 % la sollicitation de fatigue. Le calcul thermique de l'annexe H de la NF P98-086 donne l'indice de gel en surface IS qui transmet Q<sub>PF</sub> à la plate-forme : propagation du gel en une dimension, chaussée sur le sol A borné à 40 m, 1 °C en surface et 14 °C à 10 m sous la plate-forme au départ, surface en hyperbole vers -5 °C, caractéristiques thermiques de la norme. IA = IS / 0,7 + 10 est comparé à l'indice de référence IR du site. IR est celui d'une station Météo-France : valeurs officielles du catalogue de 1998 pour ses 83 stations, ailleurs indices calculés hors ligne sur les relevés quotidiens ouverts de Météo-France avec les règles du catalogue (indice d'un hiver : plus grande baisse de la courbe des températures moyennes journalières cumulées ; hiver rigoureux non exceptionnel : n-ième plus fort, n = nombre d'hivers / 10). Sur 1951-1997, ces calculs redonnent les valeurs du catalogue.</p>
       <p><b>Ce que l'outil ne fait pas.</b> Renforcement de chaussées existantes, majorations propres aux giratoires, charges spéciales (aéronautiques, portuaires), matériaux hors bibliothèque thermique pour le gel.</p>
@@ -4312,6 +4518,10 @@ function memoriser() { try { localStorage.setItem(CLE_ETAT, JSON.stringify(E)); 
 let R = null;            // dernier calcul
 let paramsOuverts = new Set();
 let posSolli = "max", grandeurProfil = "eT";
+// Convention d'affichage des sollicitations : celle de l'outil, ou celle d'Alizé pour comparer chiffre à chiffre
+const CLE_CONVENTION = "dimensionnement_chaussees_convention";
+let conventionSolli = "outil";
+try { if (localStorage.getItem(CLE_CONVENTION) === "alize") conventionSolli = "alize"; } catch (e) {}
 
 function toast(msg) {
   const t = document.createElement("div");
@@ -4411,7 +4621,7 @@ function rendreCouches() {
         champs = champParam(i, "kGNT", "k", p.kGNT, m.kGNT, 0.1) + champParam(i, "EmaxGNT", "Plafond", p.EmaxGNT, m.EmaxGNT, 10, "MPa");
       }
       const txt = m.famille === "bitumineux" && m.eps6 == null ? "Couche de roulement sans loi de fatigue dans la bibliothèque : elle compte dans le calcul mécanique mais n'est pas vérifiée."
-        : m.famille === "bitumineux" ? "Paramètres de fatigue (vides : valeurs de la bibliothèque ; Sh suit l'épaisseur d'assise bitumineuse)"
+        : m.famille === "bitumineux" ? "Paramètres de fatigue (vides : valeurs de la bibliothèque ; Sh suit l'épaisseur totale d'assise)"
         : m.kGNT != null ? "Fondation en tranches de 25 cm depuis la plate-forme, chacune à k fois le module de ce qui la porte, plafonnée (vides : valeurs de la catégorie ; 360 MPa au plus sous une assise bitumineuse)"
         : m.famille === "non_lie" ? "Le module se saisit dans la colonne Module E ; la couche est vérifiée en εz comme la plate-forme." : "Paramètres de fatigue (vides : valeurs de la bibliothèque)";
       html += `<tr class="params"><td colspan="6"><p class="params-titre">${txt}</p><div class="params-grille">${champs}</div></td></tr>`;
@@ -4612,9 +4822,9 @@ function dessinerCoupe() {
   </defs>`;
   // Jumelage
   const cx = x0 + wc / 2, jum = R.ch.type !== "simple";
-  // Véhicule au trait du pictogramme, roues posées sur la surface (grille de 24, roues jusqu'à y = 12,9)
+  // Camion au trait du pictogramme, roues posées sur la surface (grille de 24, roues jusqu'à y = 12,9)
   const kv = 4.4, xv = cx - 12 * kv, yv = haut - 12.9 * kv - 0.8;
-  s += `<g transform="translate(${xv} ${yv}) scale(${kv})" fill="none" stroke="${encre}" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" opacity=".85">${TRACES_ICONES.voiture.replace(/\/>/g, ' vector-effect="non-scaling-stroke"/>')}</g>`;
+  s += `<g transform="translate(${xv} ${yv}) scale(${kv})" fill="none" stroke="${encre}" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" opacity=".85">${TRACES_ICONES.porteur.replace(/\/>/g, ' vector-effect="non-scaling-stroke"/>')}</g>`;
   s += `<text x="${x0 + wc + 10}" y="${haut - 22}" font-size="11" fill="${discret}">${jum ? `jumelage ${fr(2 * Math.PI * R.ch.a ** 2 * R.ch.q * 1000, 0)} kN` : "roue simple"}</text>`;
   s += `<text x="${x0 + wc + 10}" y="${haut - 9}" font-size="11" fill="${discret}">q = ${fr(R.ch.q, 3)} MPa</text>`;
   // Couches
@@ -4679,18 +4889,27 @@ function rendreSollicitations() {
     const u = P.ui[P.calc[ci].ui];
     return u.sous.length > 1 ? `${u.m.nom} (${u.sous.length - (u.calcBas - ci)}/${u.sous.length})` : u.m.nom;
   };
+  // Convention Alizé : compression positive, X dans le sens de circulation (L de l'outil), Y transversal (T)
+  const alize = conventionSolli === "alize";
+  const colonnes = alize ? [["eL", 1, "ε<sub>X</sub> µdef"], ["eT", 1, "ε<sub>Y</sub> µdef"], ["ez", 1, "ε<sub>Z</sub> µdef"], ["sL", 3, "σ<sub>X</sub> MPa"], ["sT", 3, "σ<sub>Y</sub> MPa"], ["sz", 3, "σ<sub>Z</sub> MPa"]]
+    : [["eT", 1, "ε<sub>T</sub> µdef"], ["eL", 1, "ε<sub>L</sub> µdef"], ["ez", 1, "ε<sub>z</sub> µdef"], ["sT", 3, "σ<sub>T</sub> MPa"], ["sL", 3, "σ<sub>L</sub> MPa"], ["sz", 3, "σ<sub>z</sub> MPa"]];
+  $("#teteSolli").innerHTML = `<th>Profondeur</th>${colonnes.map(c => `<th>${c[2]}</th>`).join("")}`;
   for (let k = 1; k < S.length; k += 2) {
     const a = S[k], b = S[k + 1];
     [a, b].forEach((s, j) => {
       const v = lire(s), crit = critCell.get(`${s.z.toFixed(6)}|${s.couche}`);
-      const cell = (key, d, f) => `<td class="${v[key] < 0 ? "neg" : ""}${crit === key ? " crit" : ""}">${fr(f ? f(v[key]) : v[key], d)}</td>`;
+      // Les compressions restent en bleu dans les deux conventions
+      const cell = (key, d) => `<td class="${v[key] < 0 ? "neg" : ""}${crit === key ? " crit" : ""}">${fr(alize ? -v[key] : v[key], d)}</td>`;
       html += `<tr class="${j === 1 ? "interface" : ""}"><td class="z">${fr(s.z * 100, 1)} cm <small>${j === 0 ? "base" : "tête"} ${esc(nomCalc(s.couche))}</small></td>
-        ${cell("eT", 1)}${cell("eL", 1)}${cell("ez", 1)}${cell("sT", 3)}${cell("sL", 3)}${cell("sz", 3)}</tr>`;
+        ${colonnes.map(([key, d]) => cell(key, d)).join("")}</tr>`;
     });
   }
   $("#corpsSolli").innerHTML = html;
   const d = R.deflexion;
-  $("#solliHint").innerHTML = `Convention : extension et traction positives, compression négative (en bleu). Valeurs soulignées : celles qui portent un critère. `
+  $("#solliHint").innerHTML = (alize
+    ? `Convention Alizé : compression positive, extension et traction négatives ; X dans le sens de circulation, Y transversal, comme l'onglet Résultats d'Alizé2. Les compressions restent en bleu. `
+    : `Convention : extension et traction positives, compression négative (en bleu). `)
+    + `Valeurs soulignées : celles qui portent un critère. `
     + `Déflexion en surface : ${fr(d.roue * 1e5, 1)} mm/100 sous la roue${d.entre != null ? `, ${fr(d.entre * 1e5, 1)} mm/100 entre les roues` : ""}.`;
 }
 
@@ -4860,11 +5079,28 @@ $("#btnOuvrir").addEventListener("click", () => $("#fichier").click());
 $("#fichier").addEventListener("change", async ev => {
   const f = ev.target.files[0]; ev.target.value = "";
   if (!f) return;
+  if (/\.zmsp$/i.test(f.name)) { ouvrirAlize(f); return; }
   try {
     E = fusionner(etatDefaut(), JSON.parse(await f.text()));
     paramsOuverts.clear(); remplirFormulaire(); maj(); toast(`Calcul ouvert : ${f.name}`);
   } catch (e) { toast("Fichier illisible : ce n'est pas un calcul enregistré par l'outil."); }
 });
+// Projet Alizé2 : ses données d'entrée remplacent le calcul en cours, avec le compte rendu de la reprise
+async function ouvrirAlize(f) {
+  let r;
+  try { r = etatDepuisAlize(lireAlize(await f.arrayBuffer())); }
+  catch (e) { toast(`Projet Alizé illisible : ${e.message}.`); return; }
+  E = fusionner(etatDefaut(), r.etat);
+  paramsOuverts.clear(); remplirFormulaire(); maj();
+  const groupe = (icone, titre, html) => `<section class="stats-groupe"><h3>${ico(icone, 14)}${titre}</h3>${html}</section>`;
+  $("#importCorps").innerHTML = [
+    `<p class="hint" style="margin-top:0">${esc(f.name)}, ${esc(r.version || "Alizé2")}. Les données d'entrée remplacent le calcul en cours ; le projet Alizé n'est pas modifié.</p>`,
+    groupe("couches", "Données reprises", `<ul class="liste-import">${r.repris.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`),
+    r.notes.length ? groupe("attention", "À vérifier", r.notes.map(([g, t]) => note(g, esc(t))).join("")) : "",
+    groupe("info", "Comparer avec Alizé", `<p class="hint" style="margin:0">Dans Détail du calcul, choisir "Alizé" (convention de signe d'Alizé : compression positive, X dans le sens de circulation) et "Sous la roue" : les valeurs se lisent alors comme l'onglet Résultats d'Alizé.</p>`)
+  ].join("");
+  $("#dlgImport").showModal();
+}
 $("#btnImprimer").addEventListener("click", () => window.print());
 window.addEventListener("beforeprint", rendreImpression);
 
@@ -5027,13 +5263,13 @@ const AIDES = {
   criteres: { titre: "Critères vérifiés", texte: `<p>Couches liées : fatigue à la base, ε<sub>t</sub> pour les enrobés, σ<sub>t</sub> pour les matériaux hydrauliques et les bétons. Plate-forme : déformation verticale ε<sub>z</sub> en tête, contre l'orniérage.</p><p>La valeur calculée est la plus défavorable sous une roue et entre les roues, dans les deux directions horizontales.</p>` },
   taux: { titre: "Taux d'utilisation", texte: `<p>Sollicitation calculée divisée par la valeur admissible. Au-delà de 100 %, le critère n'est pas vérifié ; au-delà de 90 %, la marge est faible.</p><p>"Comprimé" : la base de la couche est en compression, la fatigue ne la menace pas.</p>` },
   optim: { titre: "Épaisseur minimale", texte: `<p>Cherche par dichotomie la plus petite épaisseur de la couche choisie qui vérifie tous les critères mécaniques, arrondie au pas indiqué.</p><p>Le gel-dégel n'entre pas dans cette recherche : le vérifier ensuite dans son onglet.</p>` },
-  sollicitations: { titre: "Sollicitations calculées", texte: `<p>Déformations et contraintes en haut et en bas de chaque couche (et de chaque tranche de GNT). <b>T</b> : direction transversale, axe des deux roues ; <b>L</b> : longitudinale, sens de circulation ; <b>z</b> : verticale.</p><p>Extension et traction positives, compression négative. "Maximum" retient la position la plus défavorable.</p>` },
+  sollicitations: { titre: "Sollicitations calculées", texte: `<p>Déformations et contraintes en haut et en bas de chaque couche (et de chaque tranche de GNT). <b>T</b> : direction transversale, axe des deux roues ; <b>L</b> : longitudinale, sens de circulation ; <b>z</b> : verticale.</p><p>Extension et traction positives, compression négative. "Maximum" retient la position la plus défavorable.</p><p><b>Convention Alizé</b> : mêmes valeurs, signe inversé (compression positive) et colonnes renommées comme dans l'onglet Résultats d'Alizé2 : X = L (sens de circulation), Y = T (transversal), Z = z. Pour comparer, choisir aussi "Sous la roue".</p>` },
   profil: { titre: "Profil en profondeur", texte: `<p>Variation de la grandeur choisie avec la profondeur, sous une roue et entre les roues. Les sauts aux interfaces sont normaux : changement de matériau ou interface glissante.</p>` },
   admissibles: { titre: "Valeurs admissibles", texte: `<p>Chaque facteur de la formule de la NF P98-086, avec son origine. <b>kr</b> dépend du risque et des dispersions SN et Sh ; <b>kc</b> cale la méthode sur le comportement observé ; <b>ks</b> réduit l'admissible sur un support peu porteur ; <b>kd</b> tient compte des discontinuités des dalles et des matériaux T4.</p>` },
   eps6: { titre: "ε6", texte: `<p>Déformation qui conduit à la rupture en un million de cycles, à 10 °C et 25 Hz (essai de fatigue NF EN 12697-24). Valeur de la classe du matériau, ou valeur de l'étude de formulation.</p>` },
   invb: { titre: "Pente -1/b", texte: `<p>Pente de la droite de fatigue : la durée de vie varie comme la sollicitation à la puissance -1/b. 5 pour les enrobés ; 10 à 16 pour les matériaux hydrauliques, bien plus sensibles à une surcharge.</p>` },
   SN: { titre: "SN", texte: `<p>Écart type du logarithme du nombre de cycles à la rupture, c'est-à-dire la dispersion de l'essai de fatigue : 0,25 à 0,3 pour les enrobés, 0,8 à 1 pour les matériaux hydrauliques.</p>` },
-  Sh: { titre: "Sh", texte: `<p>Écart type de l'épaisseur mise en oeuvre, en m. Enrobés : 1 cm jusqu'à 10 cm d'assise, 2,5 cm au-delà de 15 cm, interpolé entre deux. Matériaux hydrauliques : 3 cm (2,5 cm pour les sables traités). Champ vide : valeur de la méthode.</p>` },
+  Sh: { titre: "Sh", texte: `<p>Écart type de l'épaisseur mise en oeuvre, en m. Enrobés : 1 cm jusqu'à 10 cm d'assise, 2,5 cm au-delà de 15 cm, interpolé entre deux. L'assise compte toutes les couches entre la couche de surface et la plate-forme (enrobés, matériaux traités, GNT), comme l'assise par défaut d'Alizé2. Matériaux hydrauliques : 3 cm (2,5 cm pour les sables traités). Champ vide : valeur de la méthode.</p>` },
   kc: { titre: "kc", texte: `<p>Coefficient de calage, qui ajuste le calcul au comportement observé des chaussées : 1,1 BBSG et BBME, 1,3 GB, 1 EME, 1,4 graves-ciment, 1,5 autres matériaux hydrauliques et bétons.</p>` },
   kd: { titre: "kd", texte: `<p>Prend en compte les discontinuités et la dispersion : 1/1,7 pour une dalle non goujonnée, 1/1,47 goujonnée, 1/1,25 pour les graves T4 et le BCR, 1 sinon.</p>` },
   sig6: { titre: "σ6", texte: `<p>Contrainte de traction par flexion qui conduit à la rupture en un million de cycles, sur éprouvette de 360 jours. Valeur de la classe du matériau.</p>` },
@@ -5301,11 +5537,14 @@ function dessinerCourbeGel() {
 
 // ----- Démarrage
 segments("#posSolli", posSolli, v => { posSolli = v; rendreSollicitations(); });
+segments("#convSolli", conventionSolli, v => { conventionSolli = v; try { localStorage.setItem(CLE_CONVENTION, v); } catch (e) {} rendreSollicitations(); });
 segments("#grandeurProfil", grandeurProfil, v => { grandeurProfil = v; dessinerProfil(); });
 $("#btnApropos").addEventListener("click", ouvrirApropos);
 $("#btnAproposFermer").addEventListener("click", () => $("#dlgApropos").close());
 // Clic en dehors du panneau : la zone hors contenu appartient au <dialog> lui-même
 $("#dlgApropos").addEventListener("click", ev => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
+$("#btnImportFermer").addEventListener("click", () => $("#dlgImport").close());
+$("#dlgImport").addEventListener("click", ev => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
 $("#gelDep").innerHTML = DEPARTEMENTS_FR.map(([c, n]) => `<option value="${c}">${c} ${esc(n)}</option>`).join("");
 $("#gelAn").innerHTML = AN_MATERIAUX.map(a => `<option value="${a.id}">${esc(a.nom)} (An ${fr(a.an, 2)})</option>`).join("");
 ["#gelDep", "#gelPeriode", "#gelHiver", "#gelIR"].forEach(sel =>
