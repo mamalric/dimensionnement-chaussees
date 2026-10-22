@@ -472,47 +472,61 @@ th .btn-aide{width:15px;height:15px;margin-left:4px}
 footer.pied{padding:0 22px 26px;max-width:1440px;margin:0 auto;font-size:12px;color:var(--discret);line-height:1.6}
 footer.pied div + div{margin-top:4px}
 
-.impression{display:none}
-.imp-grille{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
-.imp-grille dl.det{margin:0}
-.imp-titre{font-size:17px;font-weight:800;color:var(--encre);margin:0 0 2px}
-.imp-sous{font-size:12px;color:var(--encre-2);margin:0 0 10px}
-.imp-adm{margin-top:10px;break-inside:avoid}
-.imp-adm-grille{grid-template-columns:1fr 1fr;gap:0 22px}
 table.facteurs td:nth-child(2){white-space:nowrap}
-.imp-adm h4{margin:0 0 2px;font-size:12.5px;color:var(--encre)}
 
-/* ---- impression : la note de calcul, toujours sur fond clair */
+/* ---- Rapport de calcul : un document à part, construit à l'impression, sur le modèle du rapport d'Alizé */
+.rapport{display:none}
 @media print{
   :root,[data-theme="dark"]{
     color-scheme:light;--fond:#fff;--papier:#fff;--papier-2:#f4f6f3;--papier-3:#e8ebe6;--ligne:#c7cbc6;--ligne-2:#dcdfda;
     --encre:#1e2220;--encre-2:#4a4f4c;--discret:#636965;--primaire:#7da32f;--primaire-fond:#eaf3d8;--primaire-bord:#c3daa0;--primaire-encre:#3f5a12;
     --froid:#1a5f79;--haute:#a8332c;--haute-fond:#fbeae8;--moyenne:#9a6410;--note-fond:#fdf6e6;--note-bord:#c39434;--ombre:none;
-    --m-bitu:#3b3f3d;--m-bitu-txt:#f2f3f1;--m-hydro:#b9c0c4;--m-hydro-txt:#26302f;--m-beton:#d5d9db;--m-beton-txt:#26302f;
-    --m-gnt:#d8c79d;--m-gnt-txt:#3d3420;--m-sol:#a8865d;--m-sol-txt:#2b2013;
   }
-  @page{size:A4;margin:14mm 12mm}
-  body{font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  header{position:static;box-shadow:none;padding:0 0 8px}
-  /* La note reprend les données sous forme de tableaux : les panneaux de saisie restent à l'écran */
-  .noprint,.grille-donnees,#panelStructure,#detailsAdm,.optim,#popAide,.btn-aide{display:none !important}
-  .onglet[hidden]{display:block !important}
-  .grille-gel{display:block}
-  .impression{display:block}
-  .imp-adm-grille{display:grid}
-  #panelVerif{break-inside:auto}
-  .verif-grille{break-inside:avoid}
-  .wrap{padding:0;max-width:none}
-  .panel{break-inside:avoid;box-shadow:none;border:1px solid var(--ligne);margin-bottom:10px}
-  .panel.long{break-inside:auto}
-  .panel h2{padding:7px 12px;font-size:13px}
-  .panel .body{padding:10px 12px}
-  .table-defile{overflow:visible;margin:0;padding:0}
-  th,td{padding:4px 6px}
-  .verif-grille{grid-template-columns:190px minmax(0,1fr);gap:14px}
-  .verdict{padding:8px 12px;margin-bottom:10px}
-  footer.pied{padding:0}
+  body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body > *:not(#rapport){display:none !important}
+  .rapport{display:block;font-size:10pt;line-height:1.45;color:var(--encre)}
 }
+.rapport .r-page{break-after:page}
+.rapport .r-garde{min-height:245mm;display:flex;flex-direction:column}
+.rapport .r-marque{display:flex;align-items:center;gap:10px;font-size:10pt;font-weight:700;color:var(--primaire-encre)}
+.rapport .r-marque svg{width:44px;height:44px}
+.rapport .r-garde .r-titres{margin-top:52mm}
+.rapport .r-garde .r-type{font-size:14pt;font-weight:700;color:var(--primaire-encre);margin:0}
+.rapport .r-garde h1{font-size:26pt;line-height:1.15;color:var(--encre);margin:10mm 0 4mm}
+.rapport .r-garde .r-trait{width:70mm;height:3px;background:var(--primaire);margin:0 0 8mm}
+.rapport .r-garde .r-pied{margin-top:auto;font-size:8.5pt;color:var(--discret)}
+.rapport h2.r-sec{display:flex;gap:10px;align-items:baseline;font-size:13pt;color:var(--primaire-encre);border:1px solid var(--primaire-bord);border-left:5px solid var(--primaire);background:var(--primaire-fond);padding:5px 10px;margin:14px 0 8px;break-after:avoid}
+.rapport h2.r-sec span{font-variant-numeric:tabular-nums}
+.rapport h3{font-size:10.5pt;color:var(--primaire-encre);margin:12px 0 5px;break-after:avoid}
+.rapport h4.r-sous{font-size:9.5pt;color:var(--encre);margin:8px 0 3px;break-after:avoid}
+.rapport h4.r-sous span{font-weight:400;color:var(--encre-2);margin-left:8px}
+.rapport .r-groupe{break-inside:avoid}
+.rapport p{margin:4px 0}
+.rapport .r-note{font-size:8.5pt;color:var(--discret)}
+.rapport table{width:100%;border-collapse:collapse;font-size:8.5pt;margin:4px 0 8px;break-inside:avoid}
+.rapport th{background:var(--primaire-fond);color:var(--primaire-encre);font-weight:700;border:1px solid var(--primaire-bord);padding:3px 4px;text-align:center;text-transform:none;letter-spacing:0}
+.rapport td{border:1px solid var(--ligne-2);padding:2px 4px;text-align:center;font-variant-numeric:tabular-nums}
+.rapport td.g{text-align:left}
+.rapport td.itf{background:var(--papier-2);color:var(--encre-2);font-style:italic}
+.rapport td.ok{color:var(--primaire-encre);font-weight:700}
+.rapport td.ko{color:var(--haute);font-weight:700}
+.rapport dl.kv{display:grid;grid-template-columns:max-content 1fr;gap:2px 14px;margin:4px 0 8px}
+.rapport dl.kv dt{color:var(--encre-2)}
+.rapport dl.kv dd{margin:0;font-variant-numeric:tabular-nums}
+.rapport .r-deux{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;align-items:start}
+.rapport .r-bloc{break-inside:avoid;border:1px solid var(--ligne-2);border-radius:6px;padding:6px 9px}
+.rapport .r-bloc h4{margin:0 0 3px;font-size:9.5pt;color:var(--encre)}
+.rapport .r-bloc dl.kv{font-size:8.5pt;margin:0}
+.rapport .r-formule{font-size:8.5pt;color:var(--encre-2);margin:3px 0 0}
+.rapport .r-verdict{border-radius:6px;padding:7px 10px;margin:6px 0;font-weight:700;break-inside:avoid}
+.rapport .r-verdict.ok{background:var(--primaire-fond);color:var(--primaire-encre);border:1px solid var(--primaire-bord)}
+.rapport .r-verdict.ko{background:var(--haute-fond);color:var(--haute);border:1px solid var(--haute)}
+.rapport .r-verdict small{display:block;font-weight:400;color:var(--encre-2)}
+.rapport .r-courbes{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+.rapport .r-courbe{break-inside:avoid}
+.rapport .r-courbe svg{width:100%;height:auto;display:block}
+.rapport .r-figure{display:flex;gap:16px;align-items:flex-start;break-inside:avoid}
+.rapport .r-figure svg{flex:none}
 </style>
 <script>try{var t=localStorage.getItem('dimensionnement_chaussees_theme');document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}</script>
 </head>
@@ -564,7 +578,6 @@ table.facteurs td:nth-child(2){white-space:nowrap}
 </dialog>
 
 <div class="wrap">
-  <section class="panel impression" id="impDonnees"></section>
 
   <div class="onglet" id="onglet-donnees" data-onglet="donnees" role="tabpanel" aria-labelledby="tab-donnees">
     <div class="grille-donnees">
@@ -574,6 +587,7 @@ table.facteurs td:nth-child(2){white-space:nowrap}
         <div class="body grid2">
           <div class="fld"><label for="affaire">Affaire</label><input type="text" id="affaire" placeholder="ex. Lotissement Les Tilleuls"></div>
           <div class="fld"><label for="voie">Voie ou section</label><input type="text" id="voie" placeholder="ex. Voie principale"></div>
+          <div class="fld"><label for="auteur">Rédacteur</label><input type="text" id="auteur" placeholder="ex. M. Dupont, B27"></div>
         </div>
       </section>
 
@@ -702,7 +716,6 @@ table.facteurs td:nth-child(2){white-space:nowrap}
               </div>
             </div>
           </div>
-          <div class="impression imp-adm-grille" id="impAdm"></div>
           <div class="optim noprint">
             <div class="fld">
               <label for="coucheOptim" data-aide="optim">Ajuster l'épaisseur de</label>
@@ -832,6 +845,8 @@ table.facteurs td:nth-child(2){white-space:nowrap}
   <div>Outil d'aide au dimensionnement à usage professionnel, qui ne remplace ni le jugement de l'ingénieur ni le catalogue des structures types. Il ne traite pas les renforcements de chaussées existantes. Méthode, valeurs des matériaux et sources : rouage en haut à droite.</div>
   <div class="noprint">Tout le calcul se fait dans le navigateur : rien n'est envoyé ni conservé ailleurs, hormis le dernier calcul et le choix du thème, gardés dans ce navigateur.</div>
 </footer>
+
+<div id="rapport" class="rapport" aria-hidden="true"></div>
 
 <script id="moteur">
 "use strict";
@@ -1402,7 +1417,7 @@ function admissibleSol(TR, H, facteur = 1) {
     ["NE<sup>-0,222</sup>", fr(ne ** -0.222, 5), ""]
   ];
   if (facteur !== 1) f.push(["Majoration", fr(facteur, 1), "GNT posée sur une couche traitée (structure inverse)"]);
-  return { crit: "ez", valeur: v, ne, facteurs: f, formule: (facteur !== 1 ? fr(facteur, 1) + " × " : "") + "ε<sub>z,adm</sub> = A × NE<sup>-0,222</sup>" };
+  return { crit: "ez", valeur: v, ne, facteurs: f, p: { cam: TR.cam.sol, ne, A: A * 1e6, b: -0.222, facteur }, formule: (facteur !== 1 ? fr(facteur, 1) + " × " : "") + "ε<sub>z,adm</sub> = A × NE<sup>-0,222</sup>" };
 }
 
 // Épaisseur d'assise qui fixe Sh des bitumineux : toutes les couches entre la couche de surface et la
@@ -1436,7 +1451,7 @@ function admissible(u, P, H, voie) {
     const delta = Math.sqrt(SN ** 2 + (C_EPAISSEUR / b) ** 2 * Sh ** 2);
     const kr = 10 ** (-u_ * b * delta), kth = Math.sqrt(E10 / Et), eps6 = param(u.c, "eps6");
     const v = eps6 * (ne / 1e6) ** b * kth * kr * kc * ks;
-    return { crit, valeur: v, ne, risque, facteurs: [
+    return { crit, valeur: v, ne, risque, p: { cam: TR.cam.bitumineux, ne, risque, u: u_, eps6, invb, E10, Et, theta, hAssise, Sh, SN, delta, kr, kc, ks, Esup }, facteurs: [
       ["ε6 (10 °C, 25 Hz)", fr(eps6, 0) + " µdef", "essai de fatigue du matériau"],
       ["NE", puissance(ne), "essieux de 130 kN, CAM " + fr(TR.cam.bitumineux, 2)],
       ["b", fr(b, 4), "pente de fatigue, -1/b = " + fr(invb, 1)],
@@ -1451,7 +1466,7 @@ function admissible(u, P, H, voie) {
   const delta = Math.sqrt(SN ** 2 + (C_EPAISSEUR / b) ** 2 * Sh ** 2);
   const kr = 10 ** (-u_ * b * delta);
   const v = sig6 * (ne / 1e6) ** b * kr * kd * kc * ks;
-  return { crit, valeur: v, ne, risque, facteurs: [
+  return { crit, valeur: v, ne, risque, p: { cam: TR.cam.hydraulique, ne, risque, u: u_, sig6, invb, Sh, SN, delta, kr, kd, kc, ks, Esup }, facteurs: [
     ["σ6", fr(sig6, 3) + " MPa", "contrainte de rupture en fatigue à 10⁶ cycles"],
     ["NE", puissance(ne), "essieux de 130 kN, CAM " + fr(TR.cam.hydraulique, 2)],
     ["b", fr(b, 4), "pente de fatigue, -1/b = " + fr(invb, 1)],
@@ -4251,7 +4266,7 @@ function etatDepuisAlize(doc) {
   const NOM_ITF = { collee: "collée", glissante: "glissante", semi: "semi-collée" };
   const theta = val((lignes.find(c => c.MatTypeStructure === "bitum") || {}).TempStructure) ?? TETA_REF;
   const etat = {
-    projet: { affaire: String(doc.entete.DescriptiveProject || doc.entete.NameProject || "").trim(), voie: "" },
+    projet: { affaire: String(doc.entete.DescriptiveProject || doc.entete.NameProject || "").trim(), voie: "", auteur: String(doc.entete.NameAuthor || "").trim() },
     hyp: { risqueMB: null, risqueMTLH: null, theta, charge: "jumelage", coefA: "auto" },
     couches: [], modele: ""
   };
@@ -4435,6 +4450,8 @@ function initTheme() {
 
 // Journal des versions : deux ou trois phrases par version, le détail va dans JOURNAL.md
 const CHANGELOG = [
+  { v: "v6", date: "2026-10-22", titre: "Rapport de calcul",
+    texte: "Le bouton Note de calcul imprime un rapport sur le modèle de celui d'Alizé2, aux couleurs de B27 : page de garde (affaire, rédacteur, date), synthèse des verdicts, structure et coupe, chargement, trafic, valeurs admissibles couche par couche (CAM, NE, risque, ε6 ou σ6, -1/b, modules, Sh, SN, kr, kc, kd, ks), tableaux de résultats d'Alizé (valeurs de dimensionnement, contraintes et déformations au centre de la roue et au milieu du jumelage), courbes en profondeur, gel-dégel et conclusion, avec en-tête et numéro de page. Champ Rédacteur, repris des projets Alizé. Correction : le dernier calcul mémorisé est de nouveau repris à l'ouverture de la page." },
   { v: "v5", date: "2026-10-22", titre: "Résultats présentés comme Alizé",
     texte: "La vue \"Alizé\" du détail du calcul reprend les tableaux de l'onglet Résultats d'Alizé2 : valeurs de dimensionnement (εt et σt minimales, εz et σz maximales, direction et position, valeur admissible intercalée), contraintes et déformations, au centre de la roue ou au milieu du jumelage, avec les cisaillements, la déflexion en mm/100 et en µm, les mêmes axes, signes et arrondis. Les valeurs en surface sont calculées exactement (σz égale la pression du pneu sous la roue)." },
   { v: "v4", date: "2026-10-22", titre: "Projets Alizé et camion",
@@ -4513,7 +4530,7 @@ function etatModele(id) {
 }
 function etatDefaut() {
   return {
-    projet: { affaire: "", voie: "" },
+    projet: { affaire: "", voie: "", auteur: "" },
     trafic: { direct: false, voie: "rase", mja: 150, p: 20, tau: 2, loi: "geo", ne: 1000000, cam: { bitumineux: null, hydraulique: null, sol: null } },
     hyp: { risqueMB: null, risqueMTLH: null, theta: TETA_REF, charge: "jumelage", q: CHARGE_REF.q, a: CHARGE_REF.a, d: CHARGE_REF.d, coefA: "auto" },
     gel: { actif: true, station: "mf|21473001", dep: "21", periode: "A", site: null, hiver: "HRNE", ir: null, sol: "SGp", pSGp: 0.3, pSGt: 0.6, hp: 0, hn: 0, an: "D", qm: true },
@@ -4548,8 +4565,7 @@ function fusionner(base, x) {
   if (!r.couches.length) r.couches = base.couches;
   return r;
 }
-let E = etatDefaut();
-try { const s = localStorage.getItem(CLE_ETAT); if (s) E = fusionner(etatDefaut(), JSON.parse(s)); } catch (e) {}
+let E = etatDefaut();   // le dernier calcul mémorisé est repris à la fin du script, une fois les stations prêtes
 function memoriser() { try { localStorage.setItem(CLE_ETAT, JSON.stringify(E)); } catch (e) {} }
 
 let R = null;            // dernier calcul
@@ -4576,7 +4592,7 @@ function segments(id, valeur, surChoix) {
 
 // ----- Formulaire de gauche : lecture et écriture
 function remplirFormulaire() {
-  $("#affaire").value = E.projet.affaire; $("#voie").value = E.projet.voie;
+  $("#affaire").value = E.projet.affaire; $("#voie").value = E.projet.voie; $("#auteur").value = E.projet.auteur || "";
   const T = E.trafic;
   $("#neDirect").checked = T.direct; $("#typeVoie").value = T.voie;
   $("#mja").value = T.mja ?? ""; $("#duree").value = T.p; $("#tau").value = T.tau; $("#neSaisi").value = T.ne ?? "";
@@ -4596,7 +4612,7 @@ function remplirCharge() {
   $("#chargeHint").textContent = `Charge par roue : ${fr(P, 1)} kN` + (H.charge === "simple" ? "." : `, soit ${fr(2 * P, 1)} kN par jumelage.`);
 }
 function lireFormulaire() {
-  E.projet.affaire = $("#affaire").value; E.projet.voie = $("#voie").value;
+  E.projet.affaire = $("#affaire").value; E.projet.voie = $("#voie").value; E.projet.auteur = $("#auteur").value;
   const T = E.trafic;
   T.direct = $("#neDirect").checked; T.voie = $("#typeVoie").value;
   T.mja = nb($("#mja").value); T.p = nb($("#duree").value) ?? 20; T.tau = nb($("#tau").value) ?? 0; T.ne = nb($("#neSaisi").value);
@@ -4758,7 +4774,7 @@ $("#modele").addEventListener("change", ev => {
 });
 
 // ----- Trafic et hypothèses
-["#affaire", "#voie"].forEach(s => $(s).addEventListener("input", () => { lireFormulaire(); memoriser(); rendreImpression(); }));
+["#affaire", "#voie", "#auteur"].forEach(s => $(s).addEventListener("input", () => { lireFormulaire(); memoriser(); }));
 ["#mja", "#duree", "#tau", "#neSaisi", "#camBitu", "#camHydro", "#camSol", "#risqueMB", "#risqueMTLH", "#theta", "#pression", "#rayon", "#entraxe", "#coefA", "#typeVoie"].forEach(s =>
   $(s).addEventListener("change", () => { lireFormulaire(); maj(); }));
 $("#neDirect").addEventListener("change", () => { lireFormulaire(); maj(); });
@@ -4950,10 +4966,12 @@ function rendreSollicitations() {
 // Chaque couche : sa face haute puis sa face basse ; la plate-forme : sa face haute.
 let optionAlize = "sig", profilAlize = "roue";
 // Nombres comme Alizé : point décimal, zéros finals retirés, zéro sans signe
+// Dans le rapport imprimé, les mêmes nombres à la française (virgule décimale)
+let virguleAlize = false;
 function nbAlize(v, d) {
   if (v == null || !isFinite(v)) return "";
-  const s = (+v.toFixed(d)).toString();
-  return s === "-0" ? "0" : s;
+  const s = (+v.toFixed(d)).toString(), t = s === "-0" ? "0" : s;
+  return virguleAlize ? t.replace(".", ",") : t;
 }
 // Tenseurs dans la convention d'Alizé à partir d'une position de l'outil
 function valeursAlize(v) {
@@ -4962,12 +4980,10 @@ function valeursAlize(v) {
     eps: [-v.eL, -v.eT, -v.ez, 0, -v.eTz, 0]
   };
 }
-function rendreAlize() {
-  const P = R.P, S = R.S, jum = R.ch.type !== "simple", nC = P.calc.length;
-  if (!jum) profilAlize = "roue";
-  $("#alizeOption").value = optionAlize; $("#alizeProfil").value = profilAlize;
-  $("#alizeProfilChamp").hidden = optionAlize === "dim" || !jum;
-  $("#alizeProfil").querySelector('[value="entre"]').disabled = !jum;
+// Tableau d'une option de l'onglet Résultats d'Alizé ("dim", "sig" ou "eps") pour un profil ("roue" ou "entre") ;
+// avecMat ajoute la colonne Matériau, comme le rapport d'Alizé
+function tableAlize(option, profil, avecMat) {
+  const P = R.P, S = R.S, nC = P.calc.length;
   const pick = (z, ci) => S.find(s => Math.abs(s.z - z) < 1e-9 && s.couche === ci);
   // Faces de chaque couche de calcul : haut et bas, une seule face pour la plate-forme
   const faces = [];
@@ -4978,9 +4994,11 @@ function rendreAlize() {
     z += c.h;
     faces.push({ ci, z, s: pick(z, ci) });
   });
-  const tete = c => `<td class="ep" rowspan="${c.rows}">${c.ci === nC - 1 ? "infini" : P.calc[c.ci].h.toFixed(3)}</td><td class="ep" rowspan="${c.rows}">${nbAlize(P.calc[c.ci].E, 0)}</td><td class="ep" rowspan="${c.rows}">${nbAlize(P.calc[c.ci].nu, 2)}</td>`;
+  const nomMat = ci => ci === nC - 1 ? (E.pf.classe === "perso" ? "sol" : E.pf.classe) : P.ui[P.calc[ci].ui].m.nom;
+  const thMat = avecMat ? "<th rowspan=\"2\">Matériau</th>" : "";
+  const tete = c => (avecMat ? `<td class="ep" rowspan="${c.rows}">${esc(nomMat(c.ci))}</td>` : "") + `<td class="ep" rowspan="${c.rows}">${c.ci === nC - 1 ? "infini" : virguleAlize ? fr(P.calc[c.ci].h, 3) : P.calc[c.ci].h.toFixed(3)}</td><td class="ep" rowspan="${c.rows}">${nbAlize(P.calc[c.ci].E, 0)}</td><td class="ep" rowspan="${c.rows}">${nbAlize(P.calc[c.ci].nu, 2)}</td>`;
   let html = "";
-  if (optionAlize === "dim") {
+  if (option === "dim") {
     // Valeurs de dimensionnement : εt et σt minimales (extension la plus forte) selon X et Y, εz et σz maximales,
     // sous la roue (R) et au milieu du jumelage (J), avec la direction et la position de l'extremum
     const extremum = (s, cles, mini) => {
@@ -5000,9 +5018,9 @@ function rendreAlize() {
       const ci = c.u ? (c.crit === "ez" ? c.u.calcHaut : c.u.calcBas) : nC - 1;
       va.set(ci, { col: { et: 0, st: 1, ez: 2 }[c.crit], adm: c.adm.valeur, z: c.z });
     });
-    html += `<thead><tr><th rowspan="2">Ep. (m)</th><th rowspan="2">Mod. (MPa)</th><th rowspan="2">Nu (-)</th><th rowspan="2">Zcalc (m)</th>
-      <th class="g" colspan="2">εt (µdef)</th><th class="g" colspan="2">σt (MPa)</th><th class="g" colspan="2">εz (µdef)</th><th class="g" colspan="2">σz (MPa)</th></tr>
-      <tr><th>val.</th><th>dir-loc</th><th>val.</th><th>dir-loc</th><th>val.</th><th>dir-loc</th><th>val.</th><th>dir-loc</th></tr></thead><tbody>`;
+    html += `<thead><tr>${thMat}<th rowspan="2">Ep. (m)</th><th rowspan="2">Mod. (MPa)</th><th rowspan="2">Nu (-)</th><th rowspan="2">Zcalc (m)</th>
+      <th class="g" colspan="2">εT</th><th class="g" colspan="2">σT</th><th class="g" colspan="2">εZ</th><th class="g" colspan="2">σZ</th></tr>
+      <tr><th>val. (µ)</th><th>dir-loc</th><th>val. (MPa)</th><th>dir-loc</th><th>val. (µ)</th><th>dir-loc</th><th>val. (MPa)</th><th>dir-loc</th></tr></thead><tbody>`;
     for (let i = 0; i < faces.length;) {
       const f = faces[i], groupe = f.seule ? [f] : [f, faces[i + 1]], v = va.get(f.ci);
       const lignes = [];
@@ -5022,21 +5040,31 @@ function rendreAlize() {
     }
     html += "</tbody>";
   } else {
-    const sig = optionAlize === "sig", u = sig ? "MPa" : "µdef", g = sig ? "σ" : "ε", d = sig ? 3 : 1;
-    html += `<thead><tr><th>Ep. (m)</th><th>Mod. (MPa)</th><th>Nu (-)</th><th>Zcalc (m)</th>${["X", "Y", "Z", "XY", "YZ", "ZX"].map(a => `<th>${g}${a} (${u})</th>`).join("")}</tr></thead><tbody>`;
+    const sig = option === "sig", u = sig ? "MPa" : "µ", g = sig ? "σ" : "ε", d = sig ? 3 : 1;
+    html += `<thead><tr>${thMat.replace(' rowspan="2"', "")}<th>Ep. (m)</th><th>Mod. (MPa)</th><th>Nu (-)</th><th>Zcalc (m)</th>${["X", "Y", "Z", "XY", "YZ", "ZX"].map(a => `<th>${g}${a} (${u})</th>`).join("")}</tr></thead><tbody>`;
     for (let i = 0; i < faces.length;) {
       const f = faces[i], groupe = f.seule ? [f] : [f, faces[i + 1]];
       html += groupe.map((gr, j) => {
-        const v = gr.s[profilAlize] || gr.s.roue, t = valeursAlize(v)[sig ? "sig" : "eps"];
+        const v = gr.s[profil] || gr.s.roue, t = valeursAlize(v)[sig ? "sig" : "eps"];
         return `<tr class="${j === groupe.length - 1 ? "fin" : ""}">${j === 0 ? tete({ ci: f.ci, rows: groupe.length }) : ""}<td>${nbAlize(gr.z, 3)}</td>${t.map(x => `<td>${nbAlize(x, d)}</td>`).join("")}</tr>`;
       }).join("");
       i += groupe.length;
     }
     html += "</tbody>";
   }
+  return html;
+}
+function rendreAlize() {
+  const jum = R.ch.type !== "simple";
+  if (!jum) profilAlize = "roue";
+  $("#alizeOption").value = optionAlize; $("#alizeProfil").value = profilAlize;
+  $("#alizeProfilChamp").hidden = optionAlize === "dim" || !jum;
+  $("#alizeProfil").querySelector('[value="entre"]').disabled = !jum;
+  const html = tableAlize(optionAlize, profilAlize);
   $("#tableAlize").innerHTML = html;
   const w = profilAlize === "entre" && R.deflexion.entre != null && optionAlize !== "dim" ? R.deflexion.entre : R.deflexion.roue;
-  $("#alizeDefl").textContent = `Déflexion = ${Math.round(w * 1e5)} mm/100 = ${Math.round(w * 1e6)} µm`;
+  // Comme Alizé : "27 mm/100 = 270 µm", "26.5 mm/100 = 265 µm"
+  $("#alizeDefl").textContent = `Déflexion = ${nbAlize(w * 1e5, 1)} mm/100 = ${Math.round(w * 1e6)} µm`;
   $("#solliHint").innerHTML = optionAlize === "dim"
     ? `Comme le tableau "Valeurs de dimensionnement" d'Alizé2 : εt et σt minimales selon X et Y (une valeur négative est une extension), εz et σz maximales, sous la roue (R) ou au milieu du jumelage (J). La valeur admissible, en italique, s'intercale entre le haut et le bas de la couche qui porte le critère ; en vert si la sollicitation la respecte, en rouge sinon.`
     : `Comme le tableau "${optionAlize === "sig" ? "Contraintes" : "Déformations"}" d'Alizé2 : compression positive, X dans le sens de circulation, Y transversal${optionAlize === "eps" ? ", ε<sub>YZ</sub> composante du tenseur" : ""}. En surface, l'outil intègre exactement : σZ y vaut la pression du pneu sous la roue (0,662 MPa), là où Alizé affiche quelques millièmes de moins. Le rayon de courbure d'Alizé n'est pas repris, sa définition n'étant pas publiée.`;
@@ -5116,51 +5144,270 @@ function lancerProfil() {
   }, 30);
 }
 
-// ----- Note de calcul : les données en tableaux, propres à l'impression
-function rendreImpression() {
-  if (!R) return;
-  const T = E.trafic, TR = R.TR, H = E.hyp, ch = R.ch, cl = TR.classe, P = R.P;
-  const dl = rows => `<dl class="det">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`;
-  const trafic = T.direct ? [["Trafic cumulé NE", `${puissance(T.ne)} <small>(saisi)</small>`]] : [
-    ["MJA à la mise en service", `${grouper(T.mja)} PL/j <small>(${cl ? cl.id : "-"})</small>`],
-    ["Durée et croissance", `${T.p} ans, ${fr(T.tau, 1)} %/an <small>(${T.loi === "arith" ? "arithmétique" : "géométrique"})</small>`],
-    ["Facteur de cumul C", fr(TR.C, 2)],
-    ["Poids lourds cumulés", grouper(TR.N)],
-    ["CAM bitumineux, hydrauliques, sol", `${fr(TR.cam.bitumineux, 2)} ; ${fr(TR.cam.hydraulique, 2)} ; ${fr(TR.cam.sol, 2)}`]
-  ];
-  const familles = new Set(P.ui.map(u => u.famille));
-  if (!T.direct) {
-    if (familles.has("bitumineux")) trafic.push(["NE, matériaux bitumineux", puissance(TR.ne.bitumineux)]);
-    if (familles.has("hydraulique") || familles.has("beton")) trafic.push(["NE, matériaux hydrauliques", puissance(TR.ne.hydraulique)]);
-    trafic.push(["NE, sol et GNT", puissance(TR.ne.sol)]);
+// ----- Rapport de calcul imprimé, sur le modèle du rapport d'Alizé2 (mêmes rubriques, mêmes tableaux, mêmes
+// courbes), aux couleurs de B27, avec en plus la synthèse des verdicts, la coupe et le gel-dégel.
+const LOGO_B27 = `<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="12" fill="#ffffff" stroke="#c3daa0"/><g transform="translate(14.24 12.53)" fill="#95c03d"><path d="M0.59 27.13 C0.80 25.41 1.18 23.39 3.48 22.15 C4.95 21.40 7.17 21.02 9.44 21.02 C11.38 21.02 18.64 21.19 18.64 26.49 C18.64 27.65 18.22 28.80 17.43 29.72 C16.04 31.25 13.92 31.92 9.56 33.32 C6.78 34.21 6.22 34.48 5.49 35.50 L18.20 35.50 L18.20 38.95 L0.00 38.95 C0.03 37.93 0.03 35.77 1.50 33.81 C3.04 31.79 5.54 30.90 6.99 30.39 C8.23 29.96 9.47 29.56 10.74 29.10 C11.97 28.67 13.42 28.16 13.42 26.57 C13.42 24.50 10.79 24.36 9.38 24.36 C7.85 24.36 6.72 24.71 6.05 25.57 C5.57 26.14 5.54 26.65 5.49 27.13 L0.59 27.13"/><path d="M0.61 0.00 L10.79 0.00 C16.42 0.00 18.55 2.40 18.55 4.87 C18.55 7.02 17.16 8.41 15.59 9.00 C17.16 9.48 19.22 10.84 19.22 13.34 C19.22 16.60 16.09 19.04 11.13 19.04 L0.61 19.04 L0.61 0.00 M10.21 7.51 C12.60 7.51 13.59 6.63 13.59 5.29 C13.59 3.90 12.30 3.18 10.36 3.18 L5.56 3.18 L5.56 7.51 L10.21 7.51 M5.56 15.86 L10.10 15.86 C12.82 15.86 14.06 14.93 14.06 13.20 C14.06 11.67 12.84 10.69 10.07 10.69 L5.56 10.69 L5.56 15.86"/><path d="M20.64 21.59H30.73V25.63H20.64Z"/><path d="M20.64 21.59 L35.52 21.59 L35.52 23.64 L26.84 38.85 L21.62 38.85 L29.61 25.63 L20.64 25.63 L20.64 21.59"/></g></svg>`;
+
+// Sollicitations sur toute l'épaisseur de la chaussée, surface comprise, pour les courbes du rapport
+function profilRapport() {
+  const P = R.P, prof = [];
+  let z = 0;
+  P.calc.forEach((c, i) => {
+    if (i === P.calc.length - 1) return;
+    const n = Math.max(4, Math.min(24, Math.round(c.h / 0.01)));
+    for (let k = 0; k <= n; k++) prof.push({ z: k === n ? z + c.h : z + c.h * k / n, couche: i });
+    z += c.h;
+  });
+  return { prof, S: solliciter(P, R.ch, prof), epaisseur: z };
+}
+
+// Une courbe en profondeur comme les "Courbes 2D" d'Alizé : valeurs en haut, profondeur à gauche, couches à droite
+function courbeRapport(titre, segments, couches, epaisseur) {
+  const W = 340, Ht = 262, ml = 42, mr = 74, mt = 34, mb = 8;
+  const vals = segments.flat().map(p => p[1]).filter(isFinite);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+  const brut = (hi - lo) / 4, ordre = 10 ** Math.floor(Math.log10(brut)), pas = [1, 2, 2.5, 5, 10].map(k => k * ordre).find(k => k >= brut);
+  lo = Math.floor(lo / pas) * pas; hi = Math.ceil(hi / pas) * pas;
+  const X = v => ml + (v - lo) / (hi - lo) * (W - ml - mr), Y = z => mt + z / epaisseur * (Ht - mt - mb);
+  const dec = pas < 0.01 ? 3 : pas < 0.1 ? 2 : pas < 1 ? 1 : 0;
+  let s = `<svg viewBox="0 0 ${W} ${Ht}" xmlns="http://www.w3.org/2000/svg" font-family="inherit">`;
+  s += `<text x="${(ml + W - mr) / 2}" y="11" text-anchor="middle" font-size="10" font-weight="700" fill="#1e2220">${titre}</text>`;
+  const teintes = { bitumineux: "#eff0ee", hydraulique: "#f2f5f7", beton: "#f4f5f7", non_lie: "#f8f4ea" };
+  couches.forEach(c => {
+    s += `<rect x="${ml}" y="${Y(c.z0)}" width="${W - ml - mr}" height="${Y(c.z1) - Y(c.z0)}" fill="${teintes[c.famille] || "#f4f6f3"}"/>`;
+    s += `<text x="${W - mr + 5}" y="${(Y(c.z0) + Y(c.z1)) / 2 + 3}" font-size="8.5" fill="#1e2220">${esc(c.nom)}</text>`;
+    if (c.itf) s += `<text x="${W - mr + 5}" y="${Y(c.z1) - 2}" font-size="7.5" fill="#676e69">${c.itf}</text>`;
+  });
+  for (let v = lo; v <= hi + pas / 2; v += pas) {
+    s += `<line x1="${X(v)}" x2="${X(v)}" y1="${mt}" y2="${Ht - mb}" stroke="#d5d9d3" stroke-width=".6"/>`;
+    s += `<text x="${X(v)}" y="${mt - 5}" text-anchor="middle" font-size="8" fill="#525754">${fr(v, dec)}</text>`;
   }
-  const A = H.coefA !== "auto" ? +H.coefA : TR.ne.sol < 250000 ? 0.016 : 0.012;
-  const rMB = H.risqueMB ?? R.risquesUsuels.bitumineux, rMTLH = H.risqueMTLH ?? R.risquesUsuels.hydraulique;
-  const hyp = [["Type de voie", esc(VOIES.find(v => v.id === T.voie).nom)]];
-  if (familles.has("bitumineux")) hyp.push(["Risque, bitumineux", `${fr(rMB, 1)} % <small>(u = ${fr(fractile(rMB / 100), 3)})</small>`]);
-  if (familles.has("hydraulique") || familles.has("beton")) hyp.push(["Risque, hydrauliques et bétons", `${fr(rMTLH, 1)} % <small>(u = ${fr(fractile(rMTLH / 100), 3)})</small>`]);
-  hyp.push(
-    ["Température équivalente", `${fr(H.theta, 0)} °C`],
-    ["Charge", ch.type === "simple" ? "roue simple" : ch.type === "jumelage" ? "jumelage de référence, 65 kN" : "jumelage personnalisé"],
-    ["q, a" + (ch.type === "simple" ? "" : ", d"), `${fr(ch.q, 3)} MPa, ${fr(ch.a, 3)} m${ch.type === "simple" ? "" : `, ${fr(ch.d, 3)} m`}`],
-    ["Coefficient A du sol", grouper(A * 1e6) + " µdef"]
-  );
-  const itfNom = { collee: "collée", semi: "semi-collée", glissante: "glissante" };
-  const lignes = P.ui.map((u, i) => `<tr><td><div class="ligne"><span class="pastille ${u.famille}"></span>${i + 1}. ${esc(u.m.nom)} <small style="color:var(--discret)">${esc(u.m.libelle)}</small></div></td>
-    <td>${fr(u.h * 100, 1)} cm</td><td>${u.sous.length > 1 ? u.sous.map(s => grouper(s.E)).join(" / ") : grouper(u.E)} MPa${u.auto ? "" : " <small>(saisi)</small>"}</td><td>${fr(u.nu, 2)}</td><td>${itfNom[E.couches[i].itf]}</td></tr>`).join("")
-    + `<tr><td><div class="ligne"><span class="pastille sol"></span>${E.pf.classe === "perso" ? "Sol support" : `Plate-forme ${E.pf.classe}`}</div></td><td>semi-infinie</td><td>${grouper(P.Epf)} MPa</td><td>${fr(P.nuPf, 2)}</td><td></td></tr>`;
-  const titre = E.projet.affaire || "Affaire non renseignée";
-  $("#impDonnees").innerHTML = `<div class="body">
-    <p class="imp-titre">Note de calcul de chaussée : ${esc(titre)}</p>
-    <p class="imp-sous">${E.projet.voie ? esc(E.projet.voie) + ". " : ""}Calcul du ${new Date().toLocaleDateString("fr-FR")}, méthode rationnelle française (NF P98-086), massif multicouche de Burmister.</p>
-    <div class="imp-grille"><div>${dl(trafic)}</div><div>${dl(hyp)}</div></div>
-    <table style="margin-top:12px"><thead><tr><th>Couche</th><th>Épaisseur</th><th>Module E</th><th>ν</th><th>Interface en dessous</th></tr></thead><tbody>${lignes}</tbody></table>
-    <div class="totaux">${$("#totaux").innerHTML}</div></div>`;
-  $("#impAdm").innerHTML = R.criteres.map(c => {
+  const prof = [0, ...couches.map(c => c.z1)];
+  prof.forEach(z => {
+    s += `<line x1="${ml}" x2="${W - mr}" y1="${Y(z)}" y2="${Y(z)}" stroke="#9aa19b" stroke-width=".7"/>`;
+    s += `<text x="${ml - 4}" y="${Y(z) + 3}" text-anchor="end" font-size="8" fill="#525754">${fr(z, 2)}</text>`;
+  });
+  if (lo < 0 && hi > 0) s += `<line x1="${X(0)}" x2="${X(0)}" y1="${mt}" y2="${Ht - mb}" stroke="#676e69" stroke-width=".9"/>`;
+  segments.forEach((seg, i) => {
+    if (seg.length > 1) s += `<path d="${seg.map((p, k) => `${k ? "L" : "M"}${X(p[1]).toFixed(1)},${Y(p[0]).toFixed(1)}`).join(" ")}" fill="none" stroke="#4c6a19" stroke-width="1.6"/>`;
+    // Saut à l'interface (changement de module) : relié en pointillé, comme les courbes d'Alizé
+    const suite = segments[i + 1];
+    if (seg.length && suite && suite.length) {
+      const a = seg[seg.length - 1], b = suite[0];
+      if (Math.abs(X(a[1]) - X(b[1])) > 0.5) s += `<line x1="${X(a[1]).toFixed(1)}" x2="${X(b[1]).toFixed(1)}" y1="${Y(a[0]).toFixed(1)}" y2="${Y(b[0]).toFixed(1)}" stroke="#4c6a19" stroke-width="1" stroke-dasharray="2 2"/>`;
+    }
+  });
+  s += `<rect x="${ml}" y="${mt}" width="${W - ml - mr}" height="${Ht - mt - mb}" fill="none" stroke="#9aa19b" stroke-width=".8"/>`;
+  s += `<text x="9" y="${(mt + Ht - mb) / 2}" text-anchor="middle" font-size="8" fill="#525754" transform="rotate(-90 9 ${(mt + Ht - mb) / 2})">profondeur (m)</text>`;
+  return s + `</svg>`;
+}
+
+function rendreRapport() {
+  if (!R) return;
+  const P = R.P, TR = R.TR, H = E.hyp, ch = R.ch, T = E.trafic, jum = ch.type !== "simple";
+  const affaire = E.projet.affaire || "Affaire non renseignée";
+  const maintenant = new Date(), version = CHANGELOG[0].v;
+  const edite = `${maintenant.toLocaleDateString("fr-FR")} à ${maintenant.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+  const sec = (n, t) => `<h2 class="r-sec"><span>${n}</span>${t}</h2>`;
+  const kv = rows => `<dl class="kv">${rows.filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`;
+  const itfNom = { collee: "Collé", semi: "Semi-collé", glissante: "Glissant" };
+  const nomPf = E.pf.classe === "perso" ? "Sol support" : `Plate-forme ${E.pf.classe}`;
+  const theta = H.theta ?? TETA_REF;
+
+  // Gel-dégel : si le calcul thermique de l'écran n'a pas encore rendu, il est fait ici
+  const gelActif = E.gel.actif !== false;
+  if (gelActif && !G) { try { G = verificationGel(JSON.parse(JSON.stringify(E))); } catch (e) { G = { erreur: e.message }; } }
+  const Gr = G;
+
+  // Coupe et courbe du gel redessinées en thème clair pour l'impression
+  const racine = document.documentElement, themeEcran = racine.dataset.theme;
+  racine.dataset.theme = "light"; dessinerCoupe(); if (G && !G.erreur && !G.sansObjet) dessinerCourbeGel();
+  const coupe = $("#coupe").outerHTML.replace(' id="coupe"', "").replace('class="coupe"', 'class="coupe" width="230"');
+  const courbeGel = G && !G.erreur && !G.sansObjet ? $("#gelCourbe").outerHTML.replace(' id="gelCourbe"', "") : "";
+  if (themeEcran) racine.dataset.theme = themeEcran; else delete racine.dataset.theme;
+  dessinerCoupe(); if (G && !G.erreur && !G.sansObjet) dessinerCourbeGel();
+
+  // Synthèse
+  const C = R.criteres, pire = C.reduce((x, y) => y.taux > x.taux ? y : x), okMeca = pire.taux <= 1, nPire = nomCritere(pire);
+  const ir = irCourant();
+  const iaGel = Gr && !Gr.erreur && !Gr.sansObjet ? (Gr.IA ?? Gr.IAmin) : null;
+  const okGel = !Gr || Gr.erreur ? null : Gr.sansObjet ? true : ir == null ? null : iaGel >= ir;
+  const verdictMeca = `<div class="r-verdict ${okMeca ? "ok" : "ko"}">Mécanique : ${okMeca ? "structure vérifiée" : "structure insuffisante"}<small>Critère dimensionnant : ${nPire.titre}, ${libelleCritere(pire)} à ${fr(pire.taux * 100, 0)} % de sa valeur admissible.</small></div>`;
+  const verdictGel = !gelActif || !Gr ? "" : Gr.erreur ? `<div class="r-verdict ko">Gel-dégel : calcul impossible<small>${esc(Gr.erreur)}</small></div>`
+    : Gr.sansObjet ? `<div class="r-verdict ok">Gel-dégel : vérification sans objet<small>Plate-forme non gélive.</small></div>`
+    : `<div class="r-verdict ${okGel === false ? "ko" : "ok"}">Gel-dégel : ${okGel == null ? "indice de référence à saisir" : okGel ? "tenue vérifiée" : "tenue insuffisante"}<small>Indice de gel admissible IA ${Gr.IA != null ? grouper(Gr.IA) : `plus de ${grouper(Gr.IAmin)}`} °C·jour${ir != null ? `, indice de référence IR ${grouper(ir)} °C·jour` : ""}.</small></div>`;
+  const tauxTxt = c => c.calc <= 0 ? "comprimé" : fr(c.taux * 100, 0) + " %";
+  const tableCriteres = `<table><thead><tr><th>Couche</th><th>Critère</th><th>Position</th><th>Calculé</th><th>Admissible</th><th>Taux</th></tr></thead><tbody>${C.map(c => {
     const n = nomCritere(c);
-    return `<div class="imp-adm"><h4>Valeur admissible, ${n.titre} : ${valCritere(c, c.adm.valeur)} ${uniteCritere(c)}</h4><div class="formule">${c.adm.formule}</div>
-      <table class="facteurs"><tbody>${c.adm.facteurs.map(([a, b, d]) => `<tr><td>${a}</td><td>${b}</td><td>${d}</td></tr>`).join("")}</tbody></table></div>`;
+    return `<tr><td class="g">${n.titre}</td><td>${libelleCritere(c)}</td><td>${nomPos(c)}</td><td>${c.calc <= 0 ? "comprimé" : valCritere(c, c.calc) + " " + uniteCritere(c)}</td><td>${valCritere(c, c.adm.valeur)} ${uniteCritere(c)}</td><td class="${c.taux > 1 ? "ko" : "ok"}">${tauxTxt(c)}</td></tr>`;
+  }).join("")}</tbody></table>`;
+
+  // 1 Structure, comme le tableau d'Alizé, puis la coupe
+  const lignesStructure = P.ui.map((u, i) => {
+    const c = E.couches[i], modifie = (c.p && Object.keys(c.p).length) || c.E != null || c.nu != null;
+    const module = u.sous.length > 1 ? u.sous.map(x => grouper(x.E)).join(" / ") : grouper(u.E);
+    return `<tr><td>${fr(u.h, 3)}</td><td>${module}</td><td>${fr(u.nu, 2)}</td><td>NF P98-086${modifie ? " (modifié)" : ""}</td><td class="g">${esc(u.m.nom)} <span class="r-note">${esc(u.m.libelle)}</span></td><td>${fr(theta, 0)}</td><td>10</td></tr>
+      <tr><td colspan="7" class="itf">${itfNom[c.itf || "collee"]}</td></tr>`;
+  }).join("") + `<tr><td>Inf.</td><td>${grouper(P.Epf)}</td><td>${fr(P.nuPf, 2)}</td><td>NF P98-086</td><td class="g">${esc(nomPf)}</td><td>${fr(theta, 0)}</td><td>10</td></tr>`;
+  const hAssise = epaisseurAssise(P.ui);
+
+  // 2 Chargement, avec le schéma du jumelage d'Alizé
+  const poidsRoue = ch.q * Math.PI * ch.a * ch.a * 1000;
+  const schema = jum ? `<svg viewBox="0 0 220 170" width="220" height="170" xmlns="http://www.w3.org/2000/svg" font-family="inherit" font-size="10" fill="none" stroke="#1e2220" stroke-width="1">
+      <line x1="120" y1="160" x2="120" y2="10" stroke-dasharray="6 3 1 3"/><path d="M116 18 L120 8 L124 18" fill="#1e2220"/><text x="128" y="16" fill="#1e2220" stroke="none">Y</text>
+      <line x1="70" y1="85" x2="190" y2="85"/><path d="M182 81 L192 85 L182 89" fill="#1e2220"/><text x="196" y="89" fill="#1e2220" stroke="none">X</text>
+      <circle cx="120" cy="50" r="24"/><circle cx="120" cy="120" r="24"/>
+      <line x1="80" y1="50" x2="80" y2="120"/><path d="M77 57 L80 50 L83 57 M77 113 L80 120 L83 113"/>
+      <text x="74" y="89" text-anchor="end" fill="#1e2220" stroke="none">d = ${fr(ch.d, 3)} m</text>
+      <line x1="138" y1="137" x2="160" y2="152"/><text x="162" y="157" fill="#1e2220" stroke="none">a = ${fr(ch.a, 3)} m</text></svg>`
+    : `<svg viewBox="0 0 220 120" width="220" height="120" xmlns="http://www.w3.org/2000/svg" font-family="inherit" font-size="10" fill="none" stroke="#1e2220"><circle cx="110" cy="60" r="30"/><line x1="132" y1="81" x2="156" y2="100"/><text x="158" y="106" fill="#1e2220" stroke="none">a = ${fr(ch.a, 3)} m</text></svg>`;
+
+  // 3 Trafic
+  const familles = new Set(P.ui.map(u => u.famille));
+  const lignesTrafic = T.direct ? [["Trafic équivalent NE", `${grouper(T.ne)} essieux de 130 kN <small>(saisi)</small>`]] : [
+    ["Trafic cumulé PL", grouper(TR.N)],
+    ["Moyenne journalière annuelle (MJA)", `${grouper(T.mja)} PL/j${TR.classe ? ` <small>(classe ${TR.classe.id})</small>` : ""}`],
+    ["Taux d'accroissement", `${T.loi === "arith" ? "arithmétique" : "géométrique"}, ${fr(T.tau, 2)} %`],
+    ["Durée de service", `${T.p} ans <small>(facteur de cumul C = ${fr(TR.C, 3)})</small>`],
+    ["Type de voie", esc(VOIES.find(v => v.id === T.voie).nom)],
+    familles.has("bitumineux") ? ["CAM et NE, bitumineux", `${fr(TR.cam.bitumineux, 2)} ; ${grouper(TR.ne.bitumineux)}`] : null,
+    familles.has("hydraulique") || familles.has("beton") ? ["CAM et NE, hydrauliques et bétons", `${fr(TR.cam.hydraulique, 2)} ; ${grouper(TR.ne.hydraulique)}`] : null,
+    ["CAM et NE, sol et GNT", `${fr(TR.cam.sol, 2)} ; ${grouper(TR.ne.sol)}`]
+  ];
+
+  // 4 Valeurs admissibles : tableau, puis les paramètres de chaque couche comme le rapport d'Alizé
+  const nomCouche = c => c.u ? `${c.u.idx + 1}. ${esc(c.u.m.nom)}` : esc(nomPf);
+  const critAlize = c => c.crit === "et" ? "εT" : c.crit === "st" ? "σT" : "εZ";
+  const tableVA = `<table><thead><tr><th>N°</th><th>Couche</th><th>Critère</th><th>Valeur admissible</th></tr></thead><tbody>${C.map((c, k) =>
+    `<tr><td>${k + 1}</td><td class="g">${nomCouche(c)}</td><td>${critAlize(c)}</td><td>${valCritere(c, c.adm.valeur)} ${uniteCritere(c)}</td></tr>`).join("")}</tbody></table>`;
+  const blocsVA = C.map(c => {
+    const p = c.adm.p || {};
+    let rows;
+    if (c.crit === "et") rows = [["CAM", fr(p.cam, 2)], ["NE", grouper(p.ne)], ["Risque", `${fr(p.risque, 1)} % <small>(u = ${fr(p.u, 3)})</small>`], ["ε6", `${fr(p.eps6, 0)} µdef`], ["-1/b", fr(p.invb, 2)],
+      ["E(10 °C, 10 Hz)", `${grouper(p.E10)} MPa`], [`E(${fr(p.theta, 0)} °C, 10 Hz)`, `${grouper(p.Et)} MPa`], ["H assise", `${fr(p.hAssise, 2)} m`], ["Sh", `${fr(p.Sh, 3)} m`], ["SN", fr(p.SN, 2)],
+      ["kr", fr(p.kr, 4)], ["kc", fr(p.kc, 2)], ["ks", `${fr(p.ks, 3)} <small>(support ${grouper(p.Esup)} MPa)</small>`]];
+    else if (c.crit === "st") rows = [["CAM", fr(p.cam, 2)], ["NE", grouper(p.ne)], ["Risque", `${fr(p.risque, 1)} % <small>(u = ${fr(p.u, 3)})</small>`], ["σ6", `${fr(p.sig6, 3)} MPa`], ["-1/b", fr(p.invb, 2)],
+      ["Sh", `${fr(p.Sh, 3)} m`], ["SN", fr(p.SN, 2)], ["kr", fr(p.kr, 4)], ["kd", fr(p.kd, 3)], ["kc", fr(p.kc, 2)], ["ks", `${fr(p.ks, 3)} <small>(support ${grouper(p.Esup)} MPa)</small>`]];
+    else rows = [["CAM", fr(p.cam, 2)], ["NE", grouper(p.ne)], ["Coefficient A", `${grouper(p.A)} µdef`], ["Pente b", fr(p.b, 3)], p.facteur && p.facteur !== 1 ? ["Majoration", fr(p.facteur, 1)] : null];
+    return `<div class="r-bloc"><h4>${nomCouche(c)} : ${critAlize(c)} admissible ${valCritere(c, c.adm.valeur)} ${uniteCritere(c)}</h4>${kv(rows)}<p class="r-formule">${c.adm.formule}</p></div>`;
   }).join("");
+
+  // 5 Résultats : les tableaux d'Alizé (nombres à la française dans le rapport)
+  virguleAlize = true;
+  const defl = w => `${String(+(w * 1e5).toFixed(1)).replace(".", ",")} mm/100 = ${grouper(w * 1e6)} µm`;
+  const tabDim = tableAlize("dim", "roue", true);
+  const tabSigR = tableAlize("sig", "roue", true), tabSigJ = jum ? tableAlize("sig", "entre", true) : "";
+  const tabEpsR = tableAlize("eps", "roue", true), tabEpsJ = jum ? tableAlize("eps", "entre", true) : "";
+  virguleAlize = false;
+
+  // 6 Courbes en profondeur, dans la convention d'Alizé (compression positive)
+  const pr = profilRapport();
+  const couches = P.calc.slice(0, -1).map((c, i) => {
+    const z0 = pr.prof.find(p => p.couche === i).z, u = P.ui[c.ui];
+    return { z0, z1: z0 + c.h, nom: u.sous.length > 1 ? `${u.m.nom} (${u.sous.findIndex(s => s.h === c.h && s.E === c.E) + 1})` : u.m.nom, famille: u.famille, itf: (itfNom[P.itf[i]] || "") };
+  });
+  const serie = f => couches.map((c, i) => pr.prof.map((p, k) => p.couche === i ? [p.z, f(pr.S[k])] : null).filter(Boolean));
+  const env = (s, cles, signe) => {
+    const xs = [];
+    for (const pos of ["roue", "entre"]) if (s[pos]) for (const cle of cles) xs.push(-s[pos][cle]);
+    return signe < 0 ? Math.min(...xs) : Math.max(...xs);
+  };
+  const graphes = [
+    ["EpsiT (µdef)", s => env(s, ["eL", "eT"], -1)], ["SigmaT (MPa)", s => env(s, ["sL", "sT"], -1)],
+    ["EpsiZ (µdef)", s => env(s, ["ez"], 1)], ["SigmaZ (MPa)", s => env(s, ["sz"], 1)]
+  ];
+  for (const [g, cle, u] of [["EpsiX", "eL", "µdef"], ["EpsiY", "eT", "µdef"], ["EpsiZ", "ez", "µdef"], ["EpsiYZ", "eTz", "µdef"], ["SigmaX", "sL", "MPa"], ["SigmaY", "sT", "MPa"], ["SigmaZ", "sz", "MPa"], ["SigmaYZ", "sTz", "MPa"]]) {
+    graphes.push([`${g} roue (${u})`, s => -s.roue[cle]]);
+    if (jum && !/YZ/.test(g)) graphes.push([`${g} jumelage (${u})`, s => -s.entre[cle]]);
+  }
+  const courbes = graphes.map(([t, f]) => `<div class="r-courbe">${courbeRapport(t, serie(f), couches, pr.epaisseur)}</div>`).join("");
+
+  // 7 Gel-dégel
+  let gel = "";
+  if (gelActif && Gr && !Gr.erreur && !Gr.sansObjet) {
+    const g = E.gel, st = stationCourante(), vs = valeursStation(st, g.periode) || {};
+    const solTxt = { SGp: `peu gélif, p = ${fr(g.pSGp, 2)}`, SGt: `très gélif, p = ${fr(g.pSGt, 2)}`, SGpSGt: `peu gélif (p = ${fr(g.pSGp, 2)}, ${fr(g.hp, 0)} cm) sur très gélif (p = ${fr(g.pSGt, 2)})` }[g.sol];
+    const anNom = (AN_MATERIAUX.find(a => a.id === g.an) || {}).nom || "";
+    const iaTxt = Gr.IA != null ? grouper(Gr.IA) : `plus de ${grouper(Gr.IAmin)}`;
+    gel = sec(7, "Vérification au gel-dégel") + kv([
+      ["Indice de référence IR", ir == null ? "-" : `${grouper(ir)} °C·jour <small>(${g.ir != null ? "saisi" : `${esc(st.nom)}, ${vs.catalogue ? "catalogue de 1998" : `Météo-France ${g.periode === "A" ? "1951-1997" : "1951-2026"}`}, hiver ${g.hiver === "HE" ? "exceptionnel" : "rigoureux non exceptionnel"}`})</small>`],
+      ["Qg, sol gélif", `${fr(Gr.qg, 2)} <small>(${solTxt})</small>`],
+      ["Qng, non gélifs de la plate-forme", `${fr(Gr.qng, 2)} <small>(${(g.hn || 0) > 0 ? `${fr(g.hn, 0)} cm, ${esc(anNom)}` : "aucun"})</small>`],
+      ["QM, apport mécanique", Gr.meca.raison ? `0 <small>(${esc(Gr.meca.raison)})</small>` : `${fr(Gr.meca.qm, 2)} <small>(e = ${fr(Gr.meca.e, 1)} cm de sol dégelé)</small>`],
+      ["QPF = Qg + Qng + QM", `${fr(Gr.qpf, 2)} (°C·jour)<sup>1/2</sup>`],
+      ["Indice de surface admissible IS", Gr.IsAdm != null ? `${grouper(Gr.IsAdm)} °C·jour` : "non atteint en 60 jours"],
+      ["Indice admissible IA = IS / 0,7 + 10", `<b>${iaTxt} °C·jour</b>`]
+    ]) + verdictGel + (courbeGel ? `<div class="r-courbe" style="max-width:150mm">${courbeGel}</div>` : "");
+  }
+
+  // 8 Conclusion
+  const usuels = [T.cam.bitumineux, T.cam.hydraulique, T.cam.sol, H.risqueMB, H.risqueMTLH].every(v => v == null);
+  const conclusion = `${verdictMeca}${verdictGel}
+    <p>${okMeca ? "La structure respecte les critères de fatigue des matériaux liés et d'orniérage du support de la NF P98-086 pour le trafic retenu." : "Au moins un critère dépasse sa valeur admissible : la structure doit être épaissie ou ses matériaux changés."}</p>
+    ${usuels ? `<p class="r-note">CAM et risques : valeurs usuelles de la NF P98-086 pour le type de voie et la classe de trafic retenus.</p>` : ""}
+    <p class="r-note">Calcul réalisé par l'outil B27 de dimensionnement des chaussées (${version}) : massif multicouche élastique de Burmister, méthode rationnelle française (NF P98-086, guide LCPC-SETRA de 1994). Ce rapport aide au dimensionnement ; il ne remplace ni le jugement de l'ingénieur ni le catalogue des structures types.</p>`;
+
+  // En-têtes et pieds de page de chaque page imprimée
+  const css = t => String(t).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const police = getComputedStyle(document.body).fontFamily;
+  let style = document.getElementById("styleRapport");
+  if (!style) { style = document.createElement("style"); style.id = "styleRapport"; document.head.appendChild(style); }
+  style.textContent = `@media print{@page{size:A4;margin:16mm 14mm 17mm;
+    @top-center{content:"${css(affaire)}";font-family:${police};font-size:9pt;font-weight:700;color:#4c6a19}
+    @bottom-left{content:"Rapport généré par l'outil B27 de dimensionnement des chaussées, ${version}";font-family:${police};font-size:7.5pt;color:#676e69}
+    @bottom-right{content:counter(page) " / " counter(pages);font-family:${police};font-size:7.5pt;color:#676e69}}
+    @page:first{@top-center{content:none}}}`;
+
+  $("#rapport").innerHTML = `
+    <section class="r-page r-garde">
+      <div class="r-marque">${LOGO_B27}<span>B27<br><small style="font-weight:400;color:var(--discret)">Outil de dimensionnement des chaussées</small></span></div>
+      <div class="r-titres">
+        <p class="r-type">Rapport de calcul</p>
+        <p class="r-type" style="font-weight:400">Vérification mécanique${gelActif ? " et au gel-dégel" : ""}</p>
+        <h1>${esc(affaire)}</h1>
+        <div class="r-trait"></div>
+        ${kv([E.projet.voie ? ["Voie ou section", esc(E.projet.voie)] : null, ["Rédacteur", esc(E.projet.auteur || "-")], ["Édité le", edite]])}
+      </div>
+      <div class="r-pied">Rapport généré par l'outil B27 de dimensionnement des chaussées (${version}), méthode rationnelle française NF P98-086.</div>
+    </section>
+    <section class="r-page">
+      ${sec("", "Synthèse")}
+      ${verdictMeca}${verdictGel}
+      <h3>Critères vérifiés</h3>${tableCriteres}
+      ${sec(1, "Structure")}
+      <table><thead><tr><th>Épaisseur (m)</th><th>Module (MPa)</th><th>Nu (-)</th><th>Bibliothèque</th><th>Matériau</th><th>Temp. (°C)</th><th>Fréq. (Hz)</th></tr></thead><tbody>${lignesStructure}</tbody></table>
+      <p class="r-note">Hauteur d'assise : ${fr(hAssise, 2)} m. Épaisseur totale : ${fr(P.epaisseur, 2)} m.</p>
+      <div class="r-figure">${coupe}</div>
+    </section>
+    <section class="r-page">
+      ${sec(2, "Chargement")}
+      <div class="r-figure"><div>${kv([["Charge", jum ? (ch.type === "jumelage" ? "Jumelage français standard" : "Jumelage personnalisé") : "Roue simple"], ["Rayon (m)", fr(ch.a, 3)], ["Pression (MPa)", fr(ch.q, 3)], ["Poids par roue (kN)", fr(poidsRoue, 1)], jum ? ["Entraxe (m)", fr(ch.d, 3)] : null])}</div>${schema}</div>
+      ${sec(3, "Trafic")}${kv(lignesTrafic)}
+      ${sec(4, "Valeurs admissibles")}${tableVA}
+      <div class="r-deux">${blocsVA}</div>
+    </section>
+    <section class="r-page">
+      ${sec(5, "Résultats")}
+      <p class="r-note">Convention d'Alizé : compression positive, extension et traction négatives ; X dans le sens de circulation, Y transversal, Z vertical ; R sous le centre de la roue, J au milieu du jumelage. Les valeurs en surface sont calculées exactement.</p>
+      <h3>5-1 Valeurs de dimensionnement</h3><table class="alize">${tabDim}</table>
+      <p class="r-note">Valeur admissible en italique entre le haut et le bas de la couche qui porte le critère.</p>
+      <h3>5-2 Contraintes</h3>
+      <div class="r-groupe"><h4 class="r-sous">5-2-1 Centre de la roue <span>déflexion ${defl(R.deflexion.roue)}</span></h4><table class="alize">${tabSigR}</table></div>
+      ${jum ? `<div class="r-groupe"><h4 class="r-sous">5-2-2 Milieu du jumelage <span>déflexion ${defl(R.deflexion.entre)}</span></h4><table class="alize">${tabSigJ}</table></div>` : ""}
+      <div class="r-groupe"><h3>5-3 Déformations</h3><h4 class="r-sous">5-3-1 Centre de la roue</h4><table class="alize">${tabEpsR}</table></div>
+      ${jum ? `<div class="r-groupe"><h4 class="r-sous">5-3-2 Milieu du jumelage</h4><table class="alize">${tabEpsJ}</table></div>` : ""}
+      <p class="r-note">εYZ : composante du tenseur des déformations. Composantes XY et ZX nulles par symétrie.</p>
+    </section>
+    <section class="r-page">
+      ${sec(6, "Courbes en profondeur")}
+      <p class="r-note">Mêmes courbes que le rapport d'Alizé, convention d'Alizé. EpsiT et SigmaT : valeur minimale selon X et Y, sous la roue et au milieu du jumelage ; EpsiZ et SigmaZ : valeur maximale. Les composantes XY et ZX, nulles, ne sont pas tracées${jum ? ", ni YZ au milieu du jumelage" : ""}. Les sauts en pointillé aux interfaces sont physiques : d'un matériau à l'autre, le module change, si bien que εZ et les contraintes horizontales changent brusquement, alors que σZ et, sur une interface collée, les déformations horizontales restent continues.</p>
+      <div class="r-courbes">${courbes}</div>
+    </section>
+    <section>
+      ${gel}
+      ${sec(gel ? 8 : 7, "Conclusion")}${conclusion}
+    </section>`;
 }
 
 // ----- Mise à jour générale
@@ -5175,7 +5422,7 @@ function maj() {
     return;
   }
   $("#modele").value = E.modele || "";
-  rendreCouches(); notesStructure(); rendreTrafic(); rendreVerification(); rendreSollicitations(); rendreImpression();
+  rendreCouches(); notesStructure(); rendreTrafic(); rendreVerification(); rendreSollicitations();
   $("#optimRes").textContent = "";
   memoriser();
   rendreResume();
@@ -5233,7 +5480,7 @@ async function ouvrirAlize(f) {
   $("#dlgImport").showModal();
 }
 $("#btnImprimer").addEventListener("click", () => window.print());
-window.addEventListener("beforeprint", rendreImpression);
+window.addEventListener("beforeprint", rendreRapport);
 
 // ----- Onglets : quatre parties au lieu d'une longue page ; l'onglet ouvert suit l'adresse (#structure...)
 const ONGLETS = ["donnees", "structure", "detail", "gel"];
@@ -5688,6 +5935,8 @@ initTheme();
 initAide();
 poserAides();
 initOnglets();
+// Dernier calcul de ce navigateur : repris ici, car la vérification des stations de gel a besoin de PAR_NUM
+try { const s = localStorage.getItem(CLE_ETAT); if (s) E = fusionner(etatDefaut(), JSON.parse(s)); } catch (e) {}
 remplirFormulaire();
 maj();
 </script>
