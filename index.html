@@ -31,7 +31,7 @@
 <style>
 /* Charte des outils B27, reprise de la Calculette ECS, du Sélectionneur de radiateurs et des
    Températures de référence : palette papier/encre, primaire olive #7da32f, clair par défaut et
-   sombre via [data-theme="dark"] ou le réglage système. Police : pile Inter sans lien Google Fonts. */
+   sombre via [data-theme="dark"] au bouton. Police : pile Inter sans lien Google Fonts. */
 :root{
   color-scheme: light;
   --fond:#eef0ed;
@@ -530,7 +530,7 @@ table.facteurs td:nth-child(2){white-space:nowrap}
 .rapport .r-figure{display:flex;gap:16px;align-items:flex-start;break-inside:avoid}
 .rapport .r-figure svg{flex:none}
 </style>
-<script>try{var t=localStorage.getItem('dimensionnement_chaussees_theme');document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}</script>
+<script>try{var t=localStorage.getItem('dimensionnement_chaussees_theme');document.documentElement.dataset.theme=t||'light';}catch(e){}</script>
 </head>
 <body>
 
@@ -4489,11 +4489,7 @@ function appliquerTheme(t) {
 }
 function themeMemorise() { try { return localStorage.getItem("dimensionnement_chaussees_theme"); } catch (e) { return null; } }
 function initTheme() {
-  const systeme = () => matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  appliquerTheme(themeMemorise() || systeme());
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ev => {
-    if (!themeMemorise()) { appliquerTheme(ev.matches ? "dark" : "light"); dessiner(); }
-  });
+  appliquerTheme(themeMemorise() || "light");
   $("#btnTheme").addEventListener("click", () => {
     const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     try { localStorage.setItem("dimensionnement_chaussees_theme", t); } catch (e) {}
