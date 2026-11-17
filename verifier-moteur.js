@@ -11,8 +11,8 @@ const calcul = bloc("calcul");
 const ctx = { console, Math, JSON, Object, Array, Number, String, Set, Map, Infinity, NaN, isFinite, parseFloat, Float64Array, Error, TextDecoder, DataView, Uint8Array, ArrayBuffer };
 vm.createContext(ctx);
 vm.runInContext([bloc("moteur"), bloc("donnees"), calcul, bloc("gel"), bloc("alize")].join("\n").replace(/"use strict";/g, "")
-  + "\nthis.api = { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF, lireAlize, etatDepuisAlize };", ctx);
-const { burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF, lireAlize, etatDepuisAlize } = ctx.api;
+  + "\nthis.api = { optimiser, plageMiseEnOeuvre, burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF, lireAlize, etatDepuisAlize };", ctx);
+const { optimiser, plageMiseEnOeuvre, burmister, calculer, fractile, preparer, quantitesGel, apportMecanique, propagationGel, THERMIQUE, STATIONS_MF, lireAlize, etatDepuisAlize } = ctx.api;
 
 let echecs = 0, controles = 0;
 function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
@@ -288,6 +288,43 @@ function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
   verifier("Alizé2 2.1.3, σYZ à 0,06 m (base du BBME)", Math.abs(r[1][1].trz), 0.013, 0.03);
   verifier("Alizé2 2.1.3, σYZ à 0,14 m (base de la GB3)", Math.abs(r[2][1].trz), 0.029, 0.03);
   verifier("Alizé2 2.1.3, σYZ à 0,49 m (interface glissante)", Math.abs(r[3][1].trz), 0, 0, 5e-4);
+}
+
+// 11. Épaisseur minimale d'une couche : jamais sous l'épaisseur minimale de mise en oeuvre du matériau (catalogue des
+//     structures types de 1998, tableau 3, minimum de fondation selon la plate-forme), critère qui la fixe nommé
+{
+  console.log("\n11. Épaisseur minimale bornée par la mise en oeuvre");
+  const etat = (couches, pf, ne) => ({
+    trafic: { direct: true, voie: "rase", mja: null, p: 20, tau: 0, loi: "geo", ne, cam: { bitumineux: null, hydraulique: null, sol: null } },
+    hyp: { risqueMB: null, risqueMTLH: null, theta: 15, charge: "jumelage", q: 0.662, a: 0.125, d: 0.375, coefA: "auto" },
+    couches: couches.map(([mat, h, itf]) => ({ mat, h, E: null, nu: null, itf: itf || "collee", p: {} })),
+    pf: { classe: "perso", E: pf, nu: 0.35 }
+  });
+  const oui = (nom, v) => verifier(nom, v ? 1 : 0, 1, 0);
+  // Bitumineuse épaisse peu chargée : ni la couche de roulement ni la GB ne sont limitées par un critère
+  let E = etat([["BBSG2", 6], ["GB3", 11], ["GB3", 11]], 50, 1e6);
+  let r = optimiser(E, 0, 1);
+  oui("couche de roulement sans critère limitant : signalée, sans plage ni épaisseur imposée", r.ok && r.auPlancher && !r.plage);
+  r = optimiser(E, 1, 1);
+  verifier("GB3 en base : minimum de mise en oeuvre (cm)", r.h, 8, 0);
+  oui("GB3 en base : fixée par la mise en oeuvre, pas par un critère", r.auPlancher);
+  // EME/EME sur PF3 : 6 cm en base (0/10), 9 cm en fondation sur PF3
+  E = etat([["BBSG2", 6], ["EME2", 8], ["EME2", 9]], 120, 1e6);
+  verifier("EME2 en base : minimum (cm)", optimiser(E, 1, 1).h, 6, 0);
+  verifier("EME2 en fondation sur PF3 : minimum (cm)", plageMiseEnOeuvre(E, 2).min, 9, 0);
+  // Graves traitées : 15 cm en base, 20, 18 ou 15 cm en fondation sur PF2, PF3 ou PF4 ; la couche de forme porte la fondation
+  E = etat([["BBSG2", 8], ["GCT3", 22, "semi"], ["GCT3", 20]], 50, 1e6);
+  verifier("GC T3 en base : minimum (cm)", plageMiseEnOeuvre(E, 1).min, 15, 0);
+  verifier("GC T3 en fondation sur PF2 : minimum (cm)", plageMiseEnOeuvre(E, 2).min, 20, 0);
+  r = optimiser(E, 1, 1);
+  oui("GC T3 en base : fixée par un σt, au-dessus du minimum", r.ok && !r.auPlancher && r.h >= 15 && r.critere.crit === "st");
+  E = etat([["BBSG2", 8], ["GCT3", 22], ["GCT3", 20], ["CDF", 40]], 50, 1e6);
+  E.couches[3].E = 200;
+  verifier("GC T3 en fondation sur couche de forme de 200 MPa (PF4) : minimum (cm)", plageMiseEnOeuvre(E, 2).min, 15, 0);
+  // Souple sous-dimensionnée : la GNT nécessaire dépasse l'épaisseur maximale d'une couche
+  E = etat([["BBSG1", 6], ["GB3", 10], ["GNT2", 30]], 50, 1e6);
+  r = optimiser(E, 2, 1);
+  oui("GNT fixée par un critère, au-delà de 35 cm", r.ok && !r.auPlancher && r.h > plageMiseEnOeuvre(E, 2).max);
 }
 
 console.log(`\n${controles - echecs}/${controles} contrôles conformes${echecs ? `, ${echecs} en échec` : ""}.`);

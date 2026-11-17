@@ -1112,6 +1112,23 @@ const MATERIAUX = [
 ];
 const MAT = Object.fromEntries(MATERIAUX.map(m => [m.id, m]));
 
+// Épaisseurs nominales minimales et maximales de mise en oeuvre d'une couche (cm) : catalogue des structures types
+// de chaussées neuves (LCPC-SETRA, 1998), § 3.1 et 3.2, tableau 3. Une plage couvre les granularités du tableau
+// (minimum de la plus fine, maximum de la plus grosse). "pf" : minimum en couche de fondation sur PF2, PF3, PF4.
+// Les couches de surface, le BC4 et le BCR n'y figurent pas : pas de plage, leur épaisseur se choisit.
+const EP_MISE_EN_OEUVRE = {
+  GB: { min: 8, max: 15, texte: "grave-bitume 0/14 : 8 à 12 cm, 0/20 : 10 à 15 cm" },
+  EME: { min: 6, max: 13, pf: [10, 9, 8], texte: "EME 0/10 : 6 à 10 cm, 0/14 : 7 à 12 cm, 0/20 : 10 à 13 cm ; en fondation, au moins 10, 9 ou 8 cm sur PF2, PF3 ou PF4" },
+  GH: { min: 15, max: 32, pf: [20, 18, 15], texte: "grave traitée aux liants hydrauliques 0/20 : 15 à 32 cm ; en fondation, au moins 20, 18 ou 15 cm sur PF2, PF3 ou PF4" },
+  SH: { min: 15, max: 45, pf: [20, 18, 15], texte: "sable traité aux liants hydrauliques : 15 à 45 cm ; en fondation, au moins 20, 18 ou 15 cm sur PF2, PF3 ou PF4" },
+  GNT: { min: 10, max: 35, texte: "GNT 0/14 en couche de réglage : 10 à 32 cm, GNT 0/20 : 15 à 35 cm" },
+  BC5G: { min: 14, max: 30, texte: "béton armé continu ou BC5 goujonné : 14 à 30 cm" },
+  BC5: { min: 15, max: 40, texte: "BC5 : 15 à 40 cm" },
+  BC2: { min: 12, max: 40, texte: "béton maigre BC2 : 12 à 40 cm" }
+};
+const GROUPE_EP = { GB2: "GB", GB3: "GB", GB4: "GB", EME1: "EME", EME2: "EME", GCT3: "GH", GCT4: "GH", GLT2: "GH", GLT3: "GH",
+  SCT2: "SH", SCT3: "SH", SLT2: "SH", SLT3: "SH", GNT1: "GNT", GNT2: "GNT", GNT3: "GNT", BC5: "BC5", BC5G: "BC5G", BC2: "BC2" };
+
 // Plates-formes support de chaussée : module de calcul (MPa), borne basse de la classe
 const PLATEFORMES = [
   { id: "PF1", nom: "PF1", E: 20 },
@@ -1167,7 +1184,7 @@ const MODELES = [
   { id: "bitumineuse", nom: "Bitumineuse épaisse : BBSG + GB3 + GB3", pf: "PF2",
     couches: [["BBSG2", 6, "collee"], ["GB3", 11, "collee"], ["GB3", 11, "collee"]] },
   { id: "eme", nom: "Bitumineuse épaisse : BBSG + EME2 + EME2", pf: "PF3",
-    couches: [["BBSG2", 6, "collee"], ["EME2", 8, "collee"], ["EME2", 8, "collee"]] },
+    couches: [["BBSG2", 6, "collee"], ["EME2", 8, "collee"], ["EME2", 9, "collee"]] },
   { id: "souple", nom: "Souple : BBSG + GB3 + GNT", pf: "PF2",
     couches: [["BBSG1", 6, "collee"], ["GB3", 10, "collee"], ["GNT2", 30, "collee"]] },
   { id: "faible", nom: "Souple à faible trafic : BBSG + GNT", pf: "PF2",
@@ -1538,22 +1555,42 @@ function profil(E) {
   return { P, S: solliciter(P, ch, prof) };
 }
 
-// Épaisseur minimale d'une couche (cm) qui satisfait tous les critères, par dichotomie sur la grille d'arrondi
+// Plage de mise en oeuvre d'une couche (cm), ou null si son matériau n'est pas au tableau 3 du catalogue de 1998.
+// Couche de fondation : posée sur la plate-forme (rien dessous, ou seulement une couche de forme) sous une autre
+// couche d'assise ; son minimum dépend de la classe de la plate-forme, lue sur le module qui la porte
+// (PF4 à partir de 200 MPa, PF3 à partir de 120 MPa, PF2 en deçà).
+function plageMiseEnOeuvre(E, idx) {
+  const g = EP_MISE_EN_OEUVRE[GROUPE_EP[E.couches[idx].mat]];
+  if (!g) return null;
+  const cs = E.couches, dessous = cs.slice(idx + 1);
+  const surPf = dessous.every(c => MAT[c.mat].critereEz);
+  const assiseAuDessus = cs.slice(0, idx).some(c => { const m = MAT[c.mat]; return !(m.famille === "bitumineux" && !m.assise); });
+  if (!g.pf || !surPf || !assiseAuDessus) return { min: g.min, max: g.max, texte: g.texte, fondation: null };
+  const Esup = dessous.length ? (dessous[0].E ?? MAT[dessous[0].mat].E) : (E.pf.E ?? 50);
+  const k = Esup >= 200 ? 2 : Esup >= 120 ? 1 : 0;
+  return { min: Math.max(g.min, g.pf[k]), max: g.max, texte: g.texte, fondation: ["PF2", "PF3", "PF4"][k] };
+}
+
+// Épaisseur minimale d'une couche (cm) qui satisfait tous les critères, par dichotomie sur la grille d'arrondi.
+// La recherche part du minimum de mise en oeuvre du matériau (2 cm sans plage connue) : "auPlancher" signale
+// qu'aucun critère mécanique n'est atteint à ce minimum, qui fixe alors seul l'épaisseur.
 function optimiser(E, idx, pas) {
-  const essai = h => {
+  const taux = h => {
     const E2 = JSON.parse(JSON.stringify(E));
     E2.couches[idx].h = h;
-    return Math.max(...calculer(E2).criteres.map(c => c.taux));
+    return calculer(E2).criteres.reduce((a, c) => c.taux > a.taux ? c : a);
   };
-  const lo0 = Math.max(pas, 2), hi0 = 80;
-  if (essai(hi0) > 1) return { ok: false, hmax: hi0 };
-  if (essai(lo0) <= 1) return { ok: true, h: lo0 };
-  let lo = Math.round(lo0 / pas), hi = Math.round(hi0 / pas);
+  const plage = plageMiseEnOeuvre(E, idx);
+  const lo0 = plage ? Math.ceil(plage.min / pas - 1e-9) * pas : Math.max(pas, 2), hi0 = 80;
+  if (taux(hi0).taux > 1) return { ok: false, hmax: hi0, plage };
+  const bas = taux(lo0);
+  if (bas.taux <= 1) return { ok: true, h: lo0, auPlancher: true, plage, critere: bas };
+  let lo = Math.round(lo0 / pas), hi = Math.round(hi0 / pas), critere = null;
   while (hi - lo > 1) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (essai(mid * pas) <= 1) hi = mid; else lo = mid;
+    const mid = Math.floor((lo + hi) / 2), c = taux(mid * pas);
+    if (c.taux <= 1) { hi = mid; critere = c; } else lo = mid;
   }
-  return { ok: true, h: hi * pas };
+  return { ok: true, h: hi * pas, auPlancher: false, plage, critere: critere || taux(hi * pas) };
 }
 
 // Interface usuelle sous une couche, selon les deux matériaux en contact (guide de 1994, catalogue de 1998)
@@ -4452,6 +4489,8 @@ function initTheme() {
 
 // Journal des versions : deux ou trois phrases par version, le détail va dans JOURNAL.md
 const CHANGELOG = [
+  { v: "v7", date: "2026-11-17", titre: "Épaisseurs de mise en oeuvre",
+    texte: "La recherche de l'épaisseur minimale ne descend plus sous l'épaisseur minimale de mise en oeuvre du matériau (catalogue des structures types de 1998, tableau 3, avec le minimum de fondation selon la plate-forme) : elle donnait 2 cm, son plancher arbitraire, dès qu'aucun critère mécanique ne limitait la couche (couche de roulement, deuxième couche d'EME ou de GB, GNT de structure inverse). Le résultat nomme le critère qui fixe l'épaisseur, ou dit que c'est le minimum de mise en oeuvre ; pour une couche de surface que rien ne limite, il l'explique sans proposer d'épaisseur ; au-delà de l'épaisseur maximale d'une couche, il propose de la dédoubler. Les épaisseurs hors plage sont signalées sous la structure. Modèle EME : couche de fondation à 9 cm, minimum du catalogue sur PF3." },
   { v: "v6", date: "2026-10-22", titre: "Rapport de calcul",
     texte: "Le bouton Note de calcul imprime un rapport sur le modèle de celui d'Alizé2, aux couleurs de B27 : page de garde (affaire, rédacteur, date), synthèse des verdicts, structure et coupe, chargement, trafic, valeurs admissibles couche par couche (CAM, NE, risque, ε6 ou σ6, -1/b, modules, Sh, SN, kr, kc, kd, ks), tableaux de résultats d'Alizé (valeurs de dimensionnement, contraintes et déformations au centre de la roue et au milieu du jumelage), courbes en profondeur, gel-dégel et conclusion, avec en-tête et numéro de page. Le profil en profondeur du détail du calcul nomme les couches, cote leurs faces, indique la nature des interfaces et relie les sauts en pointillé, comme la note. Le tableau des stations de gel tient dans sa colonne (colonne Distance seulement quand une commune est cherchée, noms sur deux lignes au besoin). Champ Rédacteur, repris des projets Alizé. Correction : le dernier calcul mémorisé est de nouveau repris à l'ouverture de la page." },
   { v: "v5", date: "2026-10-22", titre: "Résultats présentés comme Alizé",
@@ -4469,7 +4508,7 @@ const CHANGELOG = [
 const SOURCES = [
   ["Norme", "NF P98-086, Dimensionnement structurel des chaussées routières, application aux chaussées neuves (2011, révisée en 2019) : bibliothèque de matériaux, CAM et risques de l'annexe C, tels que les livre Alizé-LCPC"],
   ["Méthode", "Guide technique LCPC-SETRA, Conception et dimensionnement des structures de chaussée, décembre 1994 : règle des GNT, interfaces, structures inverses"],
-  ["Structures types", "Catalogue des structures types de chaussées neuves, LCPC-SETRA, 1998"],
+  ["Structures types", "Catalogue des structures types de chaussées neuves, LCPC-SETRA, 1998 : épaisseurs minimales et maximales de mise en oeuvre des matériaux d'assise (§ 3.1 et 3.2, tableau 3), épaisseurs d'enrobé en surface (tableau 4)"],
   ["Logiciel de référence", '<a href="https://www.alize-lcpc.com/" target="_blank" rel="noopener">Alizé-LCPC</a> (Université Gustave Eiffel) : manuel de la version 1.5 et documentation d\'Alizé2, dont les sorties chiffrées servent à contrôler le moteur'],
   ["Gel-dégel", "Guide technique de 1994, chapitre VI.5 ; NF P98-086, annexe H ; note de l'Université Gustave Eiffel sur la vérification au gel par Alizé-LCPC (décembre 2023), dont les deux cas chiffrés servent à contrôler le calcul thermique ; indices de gel de référence du catalogue de 1998, annexe 2"],
   ["Indices de gel des stations", '<a href="https://www.data.gouv.fr/fr/datasets/donnees-climatologiques-de-base-quotidiennes/" target="_blank" rel="noopener">Météo-France, données climatologiques de base quotidiennes</a> (data.gouv.fr, licence ouverte), températures minimales et maximales 1950-2026, traitées hors ligne'],
@@ -4713,6 +4752,10 @@ function notesStructure() {
     if (u.regle === "base") n.push(note("info", `${nom} en couche de base : ${fr(u.sous[0].h * 100, 0)} cm à ${grouper(u.sous[0].E)} MPa (${P.TR.ne.sol < 1e5 ? "15 cm sous 100 000 essieux" : "20 cm au-delà de 100 000 essieux"})${u.sous.length > 1 ? `, puis ${u.sous.length - 1} tranche${u.sous.length > 2 ? "s" : ""} de fondation jusqu'à la plate-forme` : ""}. Seule la plate-forme est vérifiée en εz.`));
     if (u.famille === "bitumineux" && surfaceSurGNT(u, P.ui)) n.push(note("info", `${nom} : chaussée souple, couche de surface posée sur GNT. Comme le prévoit la NF P98-086, seule la plate-forme est vérifiée (εz) ; l'épaisseur de surface se choisit selon le trafic.`));
     else if (u.famille === "bitumineux" && u.m.eps6 == null && !(u.c.p && u.c.p.eps6 != null)) n.push(note("info", `${nom} : couche de roulement sans loi de fatigue, prise en compte dans le calcul mais non vérifiée.`));
+    const p = plageMiseEnOeuvre(E, i), h = E.couches[i].h;
+    if (p && h < p.min) n.push(note("warn", `${nom} : ${fr(h, 1)} cm, sous l'épaisseur minimale de mise en oeuvre (${fr(p.min, 0)} cm${p.fondation ? ` en couche de fondation sur ${p.fondation}` : ""} ; catalogue des structures types de 1998, tableau 3 : ${p.texte}).`));
+    if (p && h > p.max) n.push(note(u.famille === "non_lie" ? "info" : "warn", `${nom} : ${fr(h, 1)} cm, au-delà de l'épaisseur maximale de mise en oeuvre d'une couche (${fr(p.max, 0)} cm ; catalogue de 1998, tableau 3) : `
+      + (u.famille === "non_lie" ? "à mettre en oeuvre en plusieurs couches successives." : "à réaliser en deux couches, à saisir comme telles avec leur interface.")));
   });
   if (E.couches.some(c => c.itf === "semi")) n.push(note("info", "Interface semi-collée : chaque sollicitation est la moyenne d'un calcul collé et d'un calcul glissant."));
   if (E.trafic.direct && !R.TR.classe) n.push(note("info", "Sans MJA, les risques usuels sont ceux de la classe T2 : les saisir si la structure relève d'une autre classe."));
@@ -5466,10 +5509,24 @@ $("#btnOptim").addEventListener("click", () => {
   const i = +$("#coucheOptim").value, pas = +$("#pasOptim").value;
   $("#optimRes").textContent = "Recherche en cours...";
   setTimeout(() => {
-    const r = optimiser(E, i, pas), nom = `${i + 1}. ${MAT[E.couches[i].mat].nom}`;
-    if (!r.ok) { $("#optimRes").innerHTML = `Même à ${r.hmax} cm, la couche ${esc(nom)} ne suffit pas : un autre critère dimensionne, ou il faut changer de matériau.`; return; }
-    $("#optimRes").innerHTML = `Épaisseur minimale de la couche ${esc(nom)} : <b>${fr(r.h, pas < 1 ? 1 : 0)} cm</b> (actuellement ${fr(E.couches[i].h, 1)} cm), à confronter aux épaisseurs de mise en oeuvre du matériau. `
-      + (r.h !== E.couches[i].h ? `<button type="button" class="btn petit" id="btnAppliquer">Appliquer</button>` : "");
+    const r = optimiser(E, i, pas), c = E.couches[i], m = MAT[c.mat], nom = `${i + 1}. ${m.nom}`, p = r.plage;
+    const source = p ? ` (catalogue des structures types de 1998, tableau 3 : ${p.texte})` : "";
+    const plage = p ? `${fr(p.min, 0)} à ${fr(p.max, 0)} cm${p.fondation ? ` en couche de fondation sur ${p.fondation}` : ""}` : "";
+    const actuel = `actuellement ${fr(c.h, 1)} cm`;
+    let txt;
+    if (!r.ok) txt = `Même à ${r.hmax} cm, la couche ${esc(nom)} ne suffit pas : un autre critère dimensionne, ou il faut changer de matériau.`;
+    else if (r.auPlancher && !p) txt = `Aucun critère mécanique ne limite l'épaisseur de la couche ${esc(nom)} : tous restent vérifiés même à ${fr(r.h, 0)} cm (${actuel}). `
+      + (m.famille === "bitumineux" && !m.assise ? "L'épaisseur d'une couche de surface se choisit selon la technique, la granularité et le trafic, pas au calcul : le catalogue de 1998 retient de 2,5 à 14 cm d'enrobé en surface selon la structure et le trafic (tableau 4)."
+        : "Son épaisseur se choisit selon les règles de mise en oeuvre du matériau.");
+    else if (r.auPlancher) txt = `Épaisseur minimale de la couche ${esc(nom)} : <b>${fr(r.h, pas < 1 ? 1 : 0)} cm</b> (${actuel}). C'est le minimum de mise en oeuvre du matériau, ${plage}${source} : les critères mécaniques sont vérifiés à cette épaisseur, ils ne la fixent pas.`;
+    else {
+      const nc = nomCritere(r.critere);
+      txt = `Épaisseur minimale de la couche ${esc(nom)} : <b>${fr(r.h, pas < 1 ? 1 : 0)} cm</b> (${actuel}), fixée par le critère ${nc.titre}, ${nc.sous}.`
+        + (p && r.h > p.max ? ` Elle dépasse l'épaisseur maximale de mise en oeuvre d'une couche, ${fr(p.max, 0)} cm${source} : `
+          + (m.famille === "non_lie" ? "à mettre en oeuvre en plusieurs couches successives." : "la réaliser en deux couches (à saisir comme telles, avec leur interface) ou choisir un matériau plus performant.")
+          : p ? ` Plage de mise en oeuvre : ${plage}.` : "");
+    }
+    $("#optimRes").innerHTML = txt + (r.ok && !(r.auPlancher && !p) && r.h !== c.h ? ` <button type="button" class="btn petit" id="btnAppliquer">Appliquer</button>` : "");
     const b = $("#btnAppliquer");
     if (b) b.onclick = () => { E.couches[i].h = r.h; E.modele = ""; maj(); toast(`Couche ${nom} portée à ${fr(r.h, 1)} cm`); };
   }, 20);
@@ -5665,13 +5722,13 @@ const AIDES = {
   coefA: { titre: "Coefficient A du sol", texte: `<p>Constante de la loi d'orniérage du sol : ε<sub>z,adm</sub> = A × NE<sup>-0,222</sup>.</p><p>NF P98-086 : <b>16 000 µdef</b> sous 250 000 essieux, <b>12 000 µdef</b> au-delà. Le guide de 1994 distinguait de même faible trafic et trafic moyen à fort.</p>` },
   modele: { titre: "Structures types", texte: `<p>Points de départ tirés des familles du catalogue de 1998, épaisseurs à ajuster avec la recherche d'épaisseur minimale.</p><p><b>Bitumineuse épaisse</b> : trafic moyen à fort. <b>Souple</b> : faible trafic (GB sur GNT, ou simple couche de surface sur GNT). <b>Semi-rigide</b> : assise traitée aux liants hydrauliques. <b>Mixte</b> et <b>inverse</b> : bitumineux et hydrauliques combinés.</p>` },
   materiau: { titre: "Couches de la structure", texte: `<p>De haut en bas, la plate-forme en dernier. Couche de surface : BBSG (BBM et BBTM ne sont pas vérifiés en fatigue). Assise : GB, EME, graves-ciment, sables traités, bétons. Fondation non traitée : GNT.</p><p>"Couche de forme" modélise une couche de forme ou un sol de module connu, vérifié en ε<sub>z</sub>. Le bouton de réglage de chaque ligne ouvre les paramètres de fatigue de la couche.</p>` },
-  epaisseur: { titre: "Épaisseur", texte: `<p>Épaisseur mise en oeuvre, en cm. La dispersion de l'épaisseur est prise en compte par l'écart type Sh dans les valeurs admissibles.</p><p>Vérifier la compatibilité avec les épaisseurs de mise en oeuvre du matériau (normes produit, granularité).</p>` },
+  epaisseur: { titre: "Épaisseur", texte: `<p>Épaisseur mise en oeuvre, en cm. La dispersion de l'épaisseur est prise en compte par l'écart type Sh dans les valeurs admissibles.</p><p>Une épaisseur hors de la plage de mise en oeuvre du matériau est signalée sous la structure (catalogue des structures types de 1998, tableau 3 : GB 8 à 15 cm, EME 6 à 13 cm, graves traitées 15 à 32 cm, sables traités 15 à 45 cm, GNT 10 à 35 cm, bétons BC2, BC5 et BAC 12 à 40 cm ; en fondation, minimum relevé selon la plate-forme). Les couches de surface n'ont pas de plage : leur épaisseur se choisit selon la technique et la granularité.</p>` },
   module: { titre: "Module d'Young", texte: `<p>Rigidité de la couche (MPa). Champ vide : valeur de la bibliothèque, à 15 °C et 10 Hz pour les enrobés.</p><p>Pour les GNT, module calculé par la règle du guide : couche de base au module de la catégorie, fondation en tranches de 25 cm depuis la plate-forme à k fois le support, plafonnée ; le détail s'affiche au survol. Saisir une valeur seulement si un essai ou une étude la justifie.</p>` },
   poisson: { titre: "Coefficient de Poisson", texte: `<p>Usuel : <b>0,35</b> pour les enrobés, les GNT et les sols ; <b>0,25</b> pour les matériaux traités aux liants hydrauliques et les bétons. Il change peu les résultats.</p>` },
   interface: { titre: "Interface avec la couche du dessous", texte: `<p><b>Collée</b> : pas de glissement. Cas des enrobés entre eux, sur GNT, et des couches posées sur la plate-forme.</p><p><b>Glissante</b> : glissement libre. Dalle béton sur sa fondation, grave-ciment T4 en base sur fondation.</p><p><b>Semi-collée</b> : moyenne des deux calculs. Graves-ciment T3 et sables traités en base sur fondation.</p><p>L'outil propose l'interface usuelle à chaque changement de matériau.</p>` },
   criteres: { titre: "Critères vérifiés", texte: `<p>Couches liées : fatigue à la base, ε<sub>t</sub> pour les enrobés, σ<sub>t</sub> pour les matériaux hydrauliques et les bétons. Plate-forme : déformation verticale ε<sub>z</sub> en tête, contre l'orniérage.</p><p>La valeur calculée est la plus défavorable sous une roue et entre les roues, dans les deux directions horizontales.</p>` },
   taux: { titre: "Taux d'utilisation", texte: `<p>Sollicitation calculée divisée par la valeur admissible. Au-delà de 100 %, le critère n'est pas vérifié ; au-delà de 90 %, la marge est faible.</p><p>"Comprimé" : la base de la couche est en compression, la fatigue ne la menace pas.</p>` },
-  optim: { titre: "Épaisseur minimale", texte: `<p>Cherche par dichotomie la plus petite épaisseur de la couche choisie qui vérifie tous les critères mécaniques, arrondie au pas indiqué.</p><p>Le gel-dégel n'entre pas dans cette recherche : le vérifier ensuite dans son onglet.</p>` },
+  optim: { titre: "Épaisseur minimale", texte: `<p>Cherche par dichotomie la plus petite épaisseur de la couche choisie qui vérifie tous les critères mécaniques, arrondie au pas indiqué, et nomme le critère qui la fixe.</p><p>La recherche ne descend pas sous l'épaisseur minimale de mise en oeuvre du matériau (catalogue des structures types de 1998, tableau 3) : quand aucun critère n'est atteint à ce minimum, c'est lui qui fixe l'épaisseur. Une couche de surface n'a pas de minimum dans ce tableau : si aucun critère ne la limite, l'outil le dit au lieu de proposer une épaisseur.</p><p>Les règles de répartition du catalogue entre couches (fondation au moins égale à la base, par exemple) et le gel-dégel n'entrent pas dans cette recherche : les vérifier ensuite.</p>` },
   sollicitations: { titre: "Sollicitations calculées", texte: `<p>Déformations et contraintes en haut et en bas de chaque couche (et de chaque tranche de GNT). <b>T</b> : direction transversale, axe des deux roues ; <b>L</b> : longitudinale, sens de circulation ; <b>z</b> : verticale.</p><p>Extension et traction positives, compression négative. "Maximum" retient la position la plus défavorable.</p><p><b>Alizé</b> : les tableaux de l'onglet Résultats d'Alizé2, à l'identique (valeurs de dimensionnement, contraintes, déformations ; centre de la roue ou milieu du jumelage). Compression positive, X = L (sens de circulation), Y = T (transversal), cisaillements compris.</p>` },
   profil: { titre: "Profil en profondeur", texte: `<p>Variation de la grandeur choisie avec la profondeur, sous une roue et entre les roues. Les sauts aux interfaces sont normaux : changement de matériau ou interface glissante.</p>` },
   admissibles: { titre: "Valeurs admissibles", texte: `<p>Chaque facteur de la formule de la NF P98-086, avec son origine. <b>kr</b> dépend du risque et des dispersions SN et Sh ; <b>kc</b> cale la méthode sur le comportement observé ; <b>ks</b> réduit l'admissible sur un support peu porteur ; <b>kd</b> tient compte des discontinuités des dalles et des matériaux T4.</p>` },
