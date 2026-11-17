@@ -327,5 +327,37 @@ function verifier(nom, obtenu, attendu, tolRel, tolAbs = 0) {
   oui("GNT fixée par un critère, au-delà de 35 cm", r.ok && !r.auPlancher && r.h > plageMiseEnOeuvre(E, 2).max);
 }
 
+// 12. Valeurs relues dans les textes lors de l'audit du 2026-11-17 (manuel IDRRIM-Cerema 2020 établi sur la NF P98-086,
+//     documentation d'Alizé2 v2.2.2) : elles ne doivent pas revenir aux valeurs antérieures
+{
+  console.log("\n12. Valeurs relues dans les textes (audit du 2026-11-17)");
+  const etat = (voie, mja, loi) => ({
+    trafic: { direct: false, voie, mja, p: 20, tau: 2, loi, ne: 0, cam: { bitumineux: null, hydraulique: null, sol: null } },
+    hyp: { risqueMB: null, risqueMTLH: null, theta: 15, charge: "jumelage", q: 0.662, a: 0.125, d: 0.375, coefA: "auto" },
+    couches: [{ mat: "BBSG2", h: 6, E: null, nu: null, itf: "collee", p: {} }, { mat: "GB3", h: 12, E: null, nu: null, itf: "collee", p: {} }],
+    pf: { classe: "PF2", E: 50, nu: 0.35 }
+  });
+  // CAM : Alizé2, guide CAM NF P98-086 2019, urbain, voie principale, bitumineux, T3- (fig. 3.8) : 0,4
+  verifier("CAM urbain, voie principale, bitumineux, T3-", calculer(etat("principale", 60, "arith")).TR.cam.bitumineux, 0.4, 0);
+  // Manuel 2020, tableau 5 : CAM de rase campagne en T3-
+  const T3 = calculer(etat("rase", 60, "arith")).TR;
+  verifier("CAM rase campagne T3-, bitumineux (manuel 2020)", T3.cam.bitumineux, 0.4, 0);
+  verifier("CAM rase campagne T3-, sol (manuel 2020)", T3.cam.sol, 0.6, 0);
+  // Manuel 2020, § 6.3, E2 et E3 : facteur de cumul sur 20 ans à 2 %
+  verifier("facteur de cumul arithmétique 20 ans à 2 % (E2)", T3.C, 20 * (1 + 19 * 0.02 / 2), 1e-12);
+  verifier("facteur de cumul géométrique 20 ans à 2 % (E3)", calculer(etat("rase", 60, "geo")).TR.C, (1.02 ** 20 - 1) / 0.02, 1e-12);
+  // Manuel 2020, tableau 18 (caractéristiques de la NF P98-086)
+  const mat = id => calculer({ ...etat("rase", 60, "arith"), couches: [{ mat: id, h: 20, E: null, nu: null, itf: "collee", p: {} }] }).P.ui[0].m;
+  verifier("GLp T3 : -1/b (manuel 2020, tableau 18)", mat("GLT3").invb, 14, 0);
+  verifier("SL T2 : σ6 (manuel 2020, tableau 18)", mat("SLT2").sig6, 0.43, 0);
+  // Manuel 2020, tableau 28 : An en /m ; anciens identifiants de 1998 repris sur les nouvelles natures
+  const qng = an => quantitesGel({ sol: "SGp", pSGp: 0.3, pSGt: 0.6, hp: 0, hn: 30, an }).qng;
+  verifier("Qng, GNT non traitée, An 12 /m sur 30 cm", qng("GNT"), 0.12 * 900 / 40, 1e-9);
+  verifier("Qng, sol A traité, An 14 /m", qng("AT"), 0.14 * 900 / 40, 1e-9);
+  verifier("Qng, sol B traité, An 13 /m", qng("BT"), 0.13 * 900 / 40, 1e-9);
+  verifier("Qng, cendres volantes, An 17 /m", qng("CV"), 0.17 * 900 / 40, 1e-9);
+  verifier("ancien identifiant A (sols A, 0,15 en 1998) repris en sol A traité", qng("A"), 0.14 * 900 / 40, 1e-9);
+}
+
 console.log(`\n${controles - echecs}/${controles} contrôles conformes${echecs ? `, ${echecs} en échec` : ""}.`);
 process.exitCode = echecs ? 1 : 0;

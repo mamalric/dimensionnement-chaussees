@@ -45,7 +45,7 @@ for f in sorted(glob.glob(os.path.join(SORTIE, "dep_*.json"))):
         stations.append({"num": num, "nom": p["nom"], "dep": dep_de(num, p["lat"], p["lon"]), "lat": p["lat"], "lon": p["lon"], "alt": p["alt"], "A": a, "B": b})
 print("stations retenues :", len(stations), "dont période du catalogue :", sum(1 for s in stations if s["A"]))
 
-# Validation sur les 83 stations du catalogue
+# Validation sur les 84 stations du catalogue
 cat = []
 for m in re.finditer(r'\["(\w{2})", "([^"]+)", (\d+), (\d+)\]', open(os.path.join(SCRATCH, "catalogue-1998-indices-gel.txt"), encoding="utf-8").read()):
     cat.append((m.group(1), m.group(2), int(m.group(3)), int(m.group(4))))

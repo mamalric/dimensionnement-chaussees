@@ -800,7 +800,7 @@ table.facteurs td:nth-child(2){white-space:nowrap}
               <select id="gelPeriode"><option value="A">1951-1997 (catalogue)</option><option value="B">1951-2026 (complète)</option></select></div>
             <div class="pleine"><span class="intitule" data-aide="station">Station météorologique retenue</span><div id="gelStations" class="liste-stations"></div></div>
             <div class="fld pleine"><label for="gelHiver" data-aide="hiver">Hiver de référence</label>
-              <select id="gelHiver"><option value="HRNE">Hiver rigoureux non exceptionnel (décennal)</option><option value="HE">Hiver exceptionnel (le plus rigoureux de la période)</option></select></div>
+              <select id="gelHiver"><option value="HE">Hiver exceptionnel (le plus rigoureux de la période)</option><option value="HRNE">Hiver rigoureux non exceptionnel (décennal)</option></select></div>
             <div class="fld"><label for="gelIR" data-aide="ir">Indice de gel IR</label><div class="ligne"><input type="number" id="gelIR" min="0" max="1000" step="5"><span class="unite">°C·jour</span></div></div>
             <p class="hint pleine" id="gelIRHint" style="margin-top:-4px"></p>
           </div>
@@ -1091,11 +1091,11 @@ const MATERIAUX = [
   { id: "GCT3", nom: "GC T3", libelle: "Grave-ciment ou grave liant hydraulique routier, T3", famille: "hydraulique", E: 23000, nu: 0.25, sig6: 0.75, invb: 15, SN: 1, Sh: 0.03, kc: 1.4, kd: 1, itf: "semi" },
   { id: "GCT4", nom: "GC T4", libelle: "Grave-ciment ou grave liant hydraulique routier, T4", famille: "hydraulique", E: 25000, nu: 0.25, sig6: 1.2, invb: 15, SN: 1, Sh: 0.03, kc: 1.4, kd: 1 / 1.25, itf: "glissante" },
   { id: "GLT2", nom: "GL T2", libelle: "Grave-laitier granulé, ou prébroyé activé à la chaux, T2", famille: "hydraulique", E: 15000, nu: 0.25, sig6: 0.6, invb: 12, SN: 1, Sh: 0.03, kc: 1.5, kd: 1, itf: "collee" },
-  { id: "GLT3", nom: "GLp T3", libelle: "Grave-laitier prébroyé, activant sulfatique ou calcique, T3", famille: "hydraulique", E: 20000, nu: 0.25, sig6: 0.7, invb: 13.7, SN: 1, Sh: 0.03, kc: 1.5, kd: 1, itf: "semi" },
+  { id: "GLT3", nom: "GLp T3", libelle: "Grave-laitier prébroyé, activant sulfatique ou calcique, T3", famille: "hydraulique", E: 20000, nu: 0.25, sig6: 0.7, invb: 14, SN: 1, Sh: 0.03, kc: 1.5, kd: 1, itf: "semi" },
   { id: "BCRT5", nom: "BCR T5", libelle: "Béton compacté routier, T5", famille: "hydraulique", E: 28000, nu: 0.25, sig6: 1.85, invb: 15, SN: 1, Sh: 0.03, kc: 1.5, kd: 1 / 1.25, itf: "semi" },
   { id: "SCT2", nom: "SC T2", libelle: "Sable-ciment, T2", famille: "hydraulique", E: 12000, nu: 0.25, sig6: 0.5, invb: 12, SN: 0.8, Sh: 0.025, kc: 1.5, kd: 1, itf: "semi" },
   { id: "SCT3", nom: "SC T3", libelle: "Sable-ciment, T3", famille: "hydraulique", E: 17200, nu: 0.25, sig6: 0.75, invb: 12, SN: 0.8, Sh: 0.025, kc: 1.5, kd: 1, itf: "semi" },
-  { id: "SLT2", nom: "SL T2", libelle: "Sable-laitier, T2", famille: "hydraulique", E: 8500, nu: 0.25, sig6: 0.425, invb: 10, SN: 0.8, Sh: 0.025, kc: 1.5, kd: 1, itf: "semi" },
+  { id: "SLT2", nom: "SL T2", libelle: "Sable-laitier, T2", famille: "hydraulique", E: 8500, nu: 0.25, sig6: 0.43, invb: 10, SN: 0.8, Sh: 0.025, kc: 1.5, kd: 1, itf: "semi" },
   { id: "SLT3", nom: "SL T3", libelle: "Sable-laitier, T3", famille: "hydraulique", E: 12500, nu: 0.25, sig6: 0.65, invb: 10, SN: 0.8, Sh: 0.025, kc: 1.5, kd: 1, itf: "semi" },
 
   // Bétons de ciment : dalle en couche de base (kd selon la structure), béton maigre en fondation (kd = 1).
@@ -1162,7 +1162,9 @@ const VOIES = [
 const CAM_NON_AUTOROUTIER = { bitumineux: [0.3, 0.3, 0.4, 0.5, 0.5], hydraulique: [0.4, 0.5, 0.6, 0.6, 0.8], sol: [0.4, 0.5, 0.6, 0.75, 1.0] };
 const CAM_AUTOROUTIER = { bitumineux: 0.8, hydraulique: 1.3, sol: 1.0 };
 // En milieu urbain, la norme ne donne que les matériaux liés : le sol garde la valeur de sa classe de trafic.
-const CAM_URBAIN = { desserte: { bitumineux: 0.1, hydraulique: 0.1 }, distribution: { bitumineux: 0.2, hydraulique: 0.2 }, principale: { bitumineux: 0.2, hydraulique: 0.4 } };
+// Voie principale à trafic lourd, bitumineux : 0,4, relevé dans le guide CAM d'Alizé2 v2.2.2 (NF P98-086 2019, T3-, fig. 3.8) ;
+// les autres valeurs urbaines n'ont pas pu être relues dans la norme.
+const CAM_URBAIN = { desserte: { bitumineux: 0.1, hydraulique: 0.1 }, distribution: { bitumineux: 0.2, hydraulique: 0.2 }, principale: { bitumineux: 0.4, hydraulique: 0.4 } };
 
 // Risque de calcul (%) de la NF P98-086, colonnes T5, T4, T3, T2, T1, T0, TS, TEX
 const RISQUES = {
@@ -3597,7 +3599,7 @@ const STATIONS_MF = [
   ["71240001","Jalogny Sapc","71",46.402,4.651,246,20,164,120,49,164,77],
   ["71266001","Lucenay","71",47.088,4.24,360,0,null,null,25,184,124],
   ["71267002","Lugny Sa","71",46.478,4.81,280,0,null,null,20,88,80],
-  ["71105001","Macon","71",46.294,4.794,219,47,210,113,76,210,73],
+  ["71105001","Macon","71",46.294,4.794,219,47,210,113,76,210,73,200,115],
   ["71289001","Matour Sapc","71",46.304,4.48,415,0,null,null,37,99,59],
   ["71306001","Montceau","71",46.683,4.367,279,38,163,126,38,163,126],
   ["71309001","Montcenis","71",46.783,4.383,425,27,292,171,27,292,171],
@@ -4163,17 +4165,23 @@ const DEPARTEMENTS_FR = [
 ];
 
 // Coefficient An des matériaux non gélifs de la plate-forme, en (°C.jour)^1/2 par cm (guide de 1994)
+// An des matériaux non gélifs de la couche de forme, en (°C·jour)^1/2/cm : NF P98-086 de 2019, reprise par le manuel
+// IDRRIM-Cerema de 2020 (tableau 28, en /m) et Alizé2 v2.2.2 (sol C1 à fines A1 : 14 /m, fig. 4.14). Le tableau de 1998
+// (sols A 0,15, B et C 0,13, D 0,12, LTCC 0,14, cendres et sables traités 0,17) est remplacé ; ANCIENS_AN reprend les calculs enregistrés.
 const AN_MATERIAUX = [
-  { id: "A", nom: "Sols A", an: 0.15 }, { id: "BC", nom: "Sols B et C", an: 0.13 }, { id: "D", nom: "Sols D", an: 0.12 },
-  { id: "LTCC", nom: "LTCC", an: 0.14 }, { id: "CVSCSL", nom: "Cendres volantes, sable-ciment, sable-laitier", an: 0.17 }
+  { id: "GNT", nom: "GNT et matériaux insensibles à l'eau (passant à 80 µm ≤ 3 %), non traités", an: 0.12 },
+  { id: "AT", nom: "Sols (C1)A1, A2, A3 traités à la chaux ou aux liants hydrauliques", an: 0.14 },
+  { id: "BT", nom: "Sols (C1)B2 à B6 traités au liant hydraulique, avec ou sans chaux", an: 0.13 },
+  { id: "CV", nom: "Cendres volantes", an: 0.17 }
 ];
+const ANCIENS_AN = { D: "GNT", A: "AT", LTCC: "AT", BC: "BT", CVSCSL: "CV" };
 
 // Quantité de gel admissible en surface d'un matériau gélif, selon la pente p de l'essai de gonflement
 const qgPente = p => p <= 0.25 ? 4 : p <= 1 ? 1 / p : 0;
 
 // Qg et Qng de la plate-forme (guide de 1994, NF P98-086)
 function quantitesGel(G) {
-  const an = (AN_MATERIAUX.find(a => a.id === G.an) || AN_MATERIAUX[2]).an, hn = G.hn || 0;
+  const an = (AN_MATERIAUX.find(a => a.id === (ANCIENS_AN[G.an] || G.an)) || AN_MATERIAUX[0]).an, hn = G.hn || 0;
   const qng = hn > 0 ? an * hn * hn / (hn + 10) : 0;
   let qg = null;
   if (G.sol === "SGp") qg = qgPente(G.pSGp);
@@ -4395,14 +4403,21 @@ function etatDepuisAlize(doc) {
       gel.ir = ir;
       repris.push(`Gel : indice de référence ${grouper(ir)} °C·jour${G.MeteoStationName ? ` (station Alizé "${G.MeteoStationName}" introuvable, indice saisi)` : ""}`);
     }
-    const pSGp = val(G.pSGpQpf), pSGt = val(G.pSGtQpf), hn = val(G.HnQpf), an = val(G.AnQpf);
+    const pSGp = val(G.pSGpQpf), pSGt = val(G.pSGtQpf), hn = val(G.HnQpf), an = val(G.AnQpf), hp = val(G.HpQpf);
     if (pSGp >= 0) gel.pSGp = pSGp;
     if (pSGt >= 0) gel.pSGt = pSGt;
     if (pSGp >= 0 || pSGt >= 0) gel.sol = pSGp >= 0 && pSGt >= 0 ? "SGpSGt" : pSGp >= 0 ? "SGp" : "SGt";
+    // Épaisseur peu gélive sur sol très gélif (m dans Alizé, cm dans l'outil)
+    if (gel.sol === "SGpSGt" && hp > 0) gel.hp = Math.round((hp < 5 ? hp * 100 : hp) * 10) / 10;
+    if (gel.sol === "SGpSGt") notes.push(["info", `Sol peu gélif sur très gélif : h<sub>p</sub> ${grouper(gel.hp ?? 0)} cm repris ; l'outil interpole Q<sub>g</sub> sur 20 cm comme le catalogue de 1998, sans le coefficient A<sub>p</sub> d'Alizé${val(G.ApQpf) > 0 ? ` (${grouper(val(G.ApQpf))})` : ""} : comparer Q<sub>g</sub> avec Alizé.`]);
     if (hn > 0) {
       gel.hn = Math.round((hn < 5 ? hn * 100 : hn) * 10) / 10;
-      const a = AN_MATERIAUX.find(x => an != null && proche(x.an * 100, an < 1 ? an * 100 : an));
+      const anCm = an == null ? null : an < 1 ? an : an / 100;
+      const a = AN_MATERIAUX.find(x => anCm != null && proche(x.an * 100, anCm * 100));
       if (a) gel.an = a.id;
+      notes.push([a ? "info" : "warn", anCm == null ? "A<sub>n</sub> absent du projet Alizé : nature des non gélifs à choisir dans l'onglet Gel-dégel."
+        : a ? `A<sub>n</sub> ${fr(anCm, 2)} repris : ${esc(a.nom)}${AN_MATERIAUX.filter(x => proche(x.an * 100, anCm * 100)).length > 1 ? " (même valeur que d'autres matériaux : vérifier la nature dans l'onglet Gel-dégel)" : ""}.`
+        : `A<sub>n</sub> ${fr(anCm, 2)} du projet Alizé absent de la liste de l'outil : nature des non gélifs à choisir dans l'onglet Gel-dégel.`]);
     }
     if (!(pSGp >= 0 || pSGt >= 0)) notes.push(["info", "Plate-forme au gel non renseignée dans Alizé (pente p de l'essai de gonflement, non gélifs) : valeurs par défaut de l'outil, à compléter dans l'onglet Gel-dégel."]);
     etat.gel = gel;
@@ -4489,6 +4504,8 @@ function initTheme() {
 
 // Journal des versions : deux ou trois phrases par version, le détail va dans JOURNAL.md
 const CHANGELOG = [
+  { v: "v8", date: "2026-11-17", titre: "Valeurs relues dans les textes",
+    texte: "Chaque valeur de l'outil a été relue dans les textes disponibles : manuel IDRRIM-Cerema de 2020 établi sur la NF P98-086, documentation d'Alizé2 v2.2.2, catalogue de 1998 et sa lettre-circulaire, GTR 2024, Code de la route (la NF P98-086 elle-même n'est pas dans l'abonnement Batipédia). Corrections : CAM des voies urbaines principales pour les bitumineux porté de 0,2 à 0,4 ; GLp T3 à -1/b = 14 et SL T2 à σ6 = 0,43 ; coefficients An de la norme de 2019 (GNT 0,12, sols A traités 0,14, sols B traités 0,13, cendres volantes 0,17) au lieu de ceux de 1998 ; station Mâcon du catalogue rétablie (84 stations) ; au-delà de 60 jours de calcul, la tenue au gel n'est plus déclarée insuffisante quand la borne basse de IA reste sous IR : elle est non établie, comme dans Alizé2 ; reprise de hp et contrôle de An à l'ouverture d'un projet Alizé. Aides et défauts : hiver exceptionnel par défaut et rappel de la lettre-circulaire de 1998 selon le trafic, croissance arithmétique par défaut, part du trafic PL selon la largeur de chaussée, classes de gélivité sans essai, coefficient de localisation de IA en agglomération signalé, sources à jour." },
   { v: "v7", date: "2026-11-17", titre: "Épaisseurs de mise en oeuvre",
     texte: "La recherche de l'épaisseur minimale ne descend plus sous l'épaisseur minimale de mise en oeuvre du matériau (catalogue des structures types de 1998, tableau 3, avec le minimum de fondation selon la plate-forme) : elle donnait 2 cm, son plancher arbitraire, dès qu'aucun critère mécanique ne limitait la couche (couche de roulement, deuxième couche d'EME ou de GB, GNT de structure inverse). Le résultat nomme le critère qui fixe l'épaisseur, ou dit que c'est le minimum de mise en oeuvre ; pour une couche de surface que rien ne limite, il l'explique sans proposer d'épaisseur ; au-delà de l'épaisseur maximale d'une couche, il propose de la dédoubler. Les épaisseurs hors plage sont signalées sous la structure. Modèle EME : couche de fondation à 9 cm, minimum du catalogue sur PF3." },
   { v: "v6", date: "2026-10-22", titre: "Rapport de calcul",
@@ -4506,11 +4523,14 @@ const CHANGELOG = [
 ];
 
 const SOURCES = [
-  ["Norme", "NF P98-086, Dimensionnement structurel des chaussées routières, application aux chaussées neuves (2011, révisée en 2019) : bibliothèque de matériaux, CAM et risques de l'annexe C, tels que les livre Alizé-LCPC"],
-  ["Méthode", "Guide technique LCPC-SETRA, Conception et dimensionnement des structures de chaussée, décembre 1994 : règle des GNT, interfaces, structures inverses"],
-  ["Structures types", "Catalogue des structures types de chaussées neuves, LCPC-SETRA, 1998 : épaisseurs minimales et maximales de mise en oeuvre des matériaux d'assise (§ 3.1 et 3.2, tableau 3), épaisseurs d'enrobé en surface (tableau 4)"],
-  ["Logiciel de référence", '<a href="https://www.alize-lcpc.com/" target="_blank" rel="noopener">Alizé-LCPC</a> (Université Gustave Eiffel) : manuel de la version 1.5 et documentation d\'Alizé2, dont les sorties chiffrées servent à contrôler le moteur'],
-  ["Gel-dégel", "Guide technique de 1994, chapitre VI.5 ; NF P98-086, annexe H ; note de l'Université Gustave Eiffel sur la vérification au gel par Alizé-LCPC (décembre 2023), dont les deux cas chiffrés servent à contrôler le calcul thermique ; indices de gel de référence du catalogue de 1998, annexe 2"],
+  ["Norme", "NF P98-086, Dimensionnement structurel des chaussées routières, application aux chaussées neuves, mai 2019 (remplace l'édition 2011 et la NF P98-080-1), en vigueur en novembre 2026 ; révision annoncée pour 2027 (Cerema, Journées techniques routières 2026). Absente de l'abonnement Batipédia de B27 : ses valeurs sont relues dans les documents ci-dessous qui la reprennent ; ce qu'aucun d'eux ne donne est signalé comme non vérifié dans le journal de l'outil"],
+  ["Manuel faible trafic", '<a href="https://doc.cerema.fr/Default/doc/SYRACUSE/14348/manuel-de-dimensionnement-des-chaussees-neuves-a-faible-trafic-guide-technique" target="_blank" rel="noopener">Manuel de dimensionnement des chaussées neuves à faible trafic</a>, IDRRIM-Cerema, février 2020, établi sur la NF P98-086 de 2019 : trafic et facteur de cumul (§ 6), CAM de T5 à T3+ (tableau 5), caractéristiques des matériaux de la norme (§ 8 et 11.6), sensibilité au gel et A<sub>n</sub> (tableaux 27 et 28), hiver de référence (§ 3.2)'],
+  ["Logiciel de référence", '<a href="https://www.alize-lcpc.com/" target="_blank" rel="noopener">Alizé-LCPC</a> (Université Gustave Eiffel) : documentation utilisateur d’Alizé2 v2.2.2 (mars 2026) pour la charge, le trafic, les coefficients, les interfaces et le gel, manuel de la version 1.5 ; leurs sorties chiffrées servent à contrôler le moteur'],
+  ["Structures types", "Catalogue des structures types de chaussées neuves, LCPC-SETRA, 1998, avec la lettre-circulaire du 26 octobre 1998 (hiver de référence sur le réseau national) : épaisseurs de mise en oeuvre (tableau 3), épaisseurs d'enrobé en surface (tableau 4), sensibilité au gel sans essai (annexe 3), indices de gel de référence de 84 stations (annexe 2)"],
+  ["Méthode", "Guide technique LCPC-SETRA, Conception et dimensionnement des structures de chaussée, décembre 1994 : référence historique de la méthode, épuisé et non relu ; les règles qui en venaient ont été vérifiées dans les documents ci-dessus quand ils les donnent"],
+  ["Gel-dégel", "NF P98-086, annexe H, telle que l'applique Alizé2 ; note de l'Université Gustave Eiffel sur la vérification au gel par Alizé-LCPC (décembre 2023), dont les cas chiffrés servent à contrôler le calcul thermique ; catalogue de 1998, annexes 2 et 3"],
+  ["Terrassements", '<a href="https://doc.cerema.fr/Default/doc/SYRACUSE/595090/guide-des-terrassements-des-remblais-et-des-couches-de-forme-fascicule-n-1-principes-generaux-fascic" target="_blank" rel="noopener">Guide des terrassements des remblais et des couches de forme (GTR)</a>, IDRRIM-Cerema, édition 2024 : classes de plates-formes PF1 à PF4 et PF2qs, classification des matériaux (la NF P11-300 de 1992 a été remplacée en 2025)'],
+  ["Charge de référence", "Code de la route, article R312-5 (version en vigueur depuis le 1er août 2021) : 13 t sur l'essieu le plus chargé"],
   ["Indices de gel des stations", '<a href="https://www.data.gouv.fr/fr/datasets/donnees-climatologiques-de-base-quotidiennes/" target="_blank" rel="noopener">Météo-France, données climatologiques de base quotidiennes</a> (data.gouv.fr, licence ouverte), températures minimales et maximales 1950-2026, traitées hors ligne'],
   ["Commune et altitude du site", '<a href="https://geoservices.ign.fr/" target="_blank" rel="noopener">IGN Géoplateforme</a> : géocodage et altimétrie, sans compte'],
   ["Modèle mécanique", "Burmister (1943), The theory of stresses and displacements in layered systems ; solution exacte en transformée de Hankel"]
@@ -4541,7 +4561,7 @@ function ouvrirApropos() {
       <p><b>Critères.</b> Fatigue des matériaux bitumineux : ε<sub>t</sub> à la base de chaque couche qui a une loi de fatigue (les couches de roulement BBM et BBTM n'en ont pas) ; sur une chaussée souple, simple couche de surface posée sur GNT, seule la plate-forme est vérifiée. Fatigue des matériaux hydrauliques et des bétons : σ<sub>t</sub> à la base. Orniérage : ε<sub>z</sub> en tête de la plate-forme, avec A = 16 000 µdef sous 250 000 essieux et 12 000 au-delà, et en tête d'une couche de forme modélisée. Une GNT posée sur une couche traitée (structure inverse) prend 480 MPa et se vérifie en ε<sub>z</sub> à 1,2 fois l'admissible du sol.</p>
       <p><b>Coefficients.</b> kr = 10<sup>-u b δ</sup>, δ = √(SN² + (c Sh / b)²), c = 2 m⁻¹ ; pour les bitumineux, Sh suit l'épaisseur totale d'assise, c'est-à-dire toutes les couches entre la couche de surface et la plate-forme, comme l'assise par défaut d'Alizé2. ks selon le module du support de la couche liée : 1/1,2 sous 50 MPa, 1/1,1 jusqu'à 80, 1/1,065 jusqu'à 120, 1 au-delà ; une assise bitumineuse compte comme un tout.</p>
       <p><b>Modules.</b> Les bitumineux prennent leur module à la température équivalente (15 °C en métropole), interpolé dans le tableau E(θ). Une GNT en couche de base (sous la seule couche de roulement) prend le module de sa catégorie sur 15 cm, ou 20 cm au-delà de 100 000 essieux ; la fondation est découpée en tranches de 25 cm depuis la plate-forme, chacune à k fois le module de ce qui la porte (k = 3, 2,5 ou 2), plafonnée au module de la catégorie, ou à 360 MPa sous une assise bitumineuse.</p>
-      <p><b>Gel-dégel.</b> Quantité de gel admissible au niveau de la plate-forme Q<sub>PF</sub> = Q<sub>g</sub> + Q<sub>ng</sub> + Q<sub>M</sub> (guide de 1994) : Q<sub>g</sub> selon la pente p de l'essai de gonflement du sol gélif, Q<sub>ng</sub> = A<sub>n</sub> h<sub>n</sub>² / (h<sub>n</sub> + 10) pour les matériaux non gélifs de la plate-forme, Q<sub>M</sub> = e / 10 pour une chaussée de plus de 20 cm de matériaux liés, e étant l'épaisseur de sol dégelé (module divisé par 10) qui accroît de 5 % la sollicitation de fatigue. Le calcul thermique de l'annexe H de la NF P98-086 donne l'indice de gel en surface IS qui transmet Q<sub>PF</sub> à la plate-forme : propagation du gel en une dimension, chaussée sur le sol A borné à 40 m, 1 °C en surface et 14 °C à 10 m sous la plate-forme au départ, surface en hyperbole vers -5 °C, caractéristiques thermiques de la norme. IA = IS / 0,7 + 10 est comparé à l'indice de référence IR du site. IR est celui d'une station Météo-France : valeurs officielles du catalogue de 1998 pour ses 83 stations, ailleurs indices calculés hors ligne sur les relevés quotidiens ouverts de Météo-France avec les règles du catalogue (indice d'un hiver : plus grande baisse de la courbe des températures moyennes journalières cumulées ; hiver rigoureux non exceptionnel : n-ième plus fort, n = nombre d'hivers / 10). Sur 1951-1997, ces calculs redonnent les valeurs du catalogue.</p>
+      <p><b>Gel-dégel.</b> Quantité de gel admissible au niveau de la plate-forme Q<sub>PF</sub> = Q<sub>g</sub> + Q<sub>ng</sub> + Q<sub>M</sub> (NF P98-086, telle que l'applique Alizé2) : Q<sub>g</sub> selon la pente p de l'essai de gonflement du sol gélif, Q<sub>ng</sub> = A<sub>n</sub> h<sub>n</sub>² / (h<sub>n</sub> + 10) pour les matériaux non gélifs de la plate-forme, Q<sub>M</sub> = e / 10 pour une chaussée de plus de 20 cm de matériaux liés, e étant l'épaisseur de sol dégelé (module divisé par 10) qui accroît de 5 % la sollicitation de fatigue. Le calcul thermique de l'annexe H de la NF P98-086 donne l'indice de gel en surface IS qui transmet Q<sub>PF</sub> à la plate-forme : propagation du gel en une dimension, chaussée sur le sol A borné à 40 m, 1 °C en surface et 14 °C à 10 m sous la plate-forme au départ, surface en hyperbole vers -5 °C, caractéristiques thermiques de la norme. IA = IS / 0,7 + 10 (hors agglomération ; la norme pondère IA par un coefficient de localisation au-delà de 100 000 habitants) est comparé à l'indice de référence IR du site. IR est celui d'une station Météo-France : valeurs officielles du catalogue de 1998 pour ses 84 stations, ailleurs indices calculés hors ligne sur les relevés quotidiens ouverts de Météo-France avec les règles du catalogue (indice d'un hiver : plus grande baisse de la courbe des températures moyennes journalières cumulées ; hiver rigoureux non exceptionnel : n-ième plus fort, n = nombre d'hivers / 10). Sur 1951-1997, ces calculs redonnent le catalogue à quelques °C·jour près pour la plupart de ses stations (écart médian de 4 °C·jour en hiver exceptionnel, 2 en hiver rigoureux), mais s'en écartent de plus de 30 °C·jour pour six d'entre elles (Evreux, Bourg-Saint-Maurice, Mont-Saint-Vincent, Challes-les-Eaux, Grenoble, Ambérieu) : près d'une station du catalogue, retenir sa valeur officielle.</p>
       <p><b>Ce que l'outil ne fait pas.</b> Renforcement de chaussées existantes, majorations propres aux giratoires, charges spéciales (aéronautiques, portuaires), matériaux hors bibliothèque thermique pour le gel.</p>
     </div>`),
     groupe("couches", "Matériaux bitumineux (E en MPa à 10 Hz, ε6 en µdef)", tBitu),
@@ -4572,9 +4592,9 @@ function etatModele(id) {
 function etatDefaut() {
   return {
     projet: { affaire: "", voie: "", auteur: "" },
-    trafic: { direct: false, voie: "rase", mja: 150, p: 20, tau: 2, loi: "geo", ne: 1000000, cam: { bitumineux: null, hydraulique: null, sol: null } },
+    trafic: { direct: false, voie: "rase", mja: 150, p: 20, tau: 2, loi: "arith", ne: 1000000, cam: { bitumineux: null, hydraulique: null, sol: null } },
     hyp: { risqueMB: null, risqueMTLH: null, theta: TETA_REF, charge: "jumelage", q: CHARGE_REF.q, a: CHARGE_REF.a, d: CHARGE_REF.d, coefA: "auto" },
-    gel: { actif: true, station: "mf|21473001", dep: "21", periode: "A", site: null, hiver: "HRNE", ir: null, sol: "SGp", pSGp: 0.3, pSGt: 0.6, hp: 0, hn: 0, an: "D", qm: true },
+    gel: { actif: true, station: "mf|21473001", dep: "21", periode: "A", site: null, hiver: "HE", ir: null, sol: "SGp", pSGp: 0.3, pSGt: 0.6, hp: 0, hn: 0, an: "GNT", qm: true },
     ...etatModele("bitumineuse")
   };
 }
@@ -4595,6 +4615,7 @@ function fusionner(base, x) {
   if (!VOIES.some(v => v.id === r.trafic.voie)) r.trafic.voie = base.trafic.voie;
   if (!PLATEFORMES.some(p => p.id === r.pf.classe)) r.pf = base.pf;
   if (!["SGp", "SGt", "SGpSGt", "SGn"].includes(r.gel.sol)) r.gel.sol = base.gel.sol;
+  if (ANCIENS_AN[r.gel.an]) r.gel.an = ANCIENS_AN[r.gel.an];
   if (!AN_MATERIAUX.some(a => a.id === r.gel.an)) r.gel.an = base.gel.an;
   if (!(r.gel.station || "").startsWith("mf|") || !PAR_NUM[r.gel.station.slice(3)]) r.gel.station = base.gel.station;
   if (!DEPARTEMENTS_FR.some(d => d[0] === r.gel.dep)) r.gel.dep = base.gel.dep;
@@ -5305,12 +5326,12 @@ function rendreRapport() {
   // Synthèse
   const C = R.criteres, pire = C.reduce((x, y) => y.taux > x.taux ? y : x), okMeca = pire.taux <= 1, nPire = nomCritere(pire);
   const ir = irCourant();
-  const iaGel = Gr && !Gr.erreur && !Gr.sansObjet ? (Gr.IA ?? Gr.IAmin) : null;
-  const okGel = !Gr || Gr.erreur ? null : Gr.sansObjet ? true : ir == null ? null : iaGel >= ir;
+  const eGel = !Gr || Gr.erreur ? null : Gr.sansObjet ? "ok" : etatGel(Gr, ir);
+  const okGel = eGel === "ok" ? true : eGel === "ko" ? false : null;
   const verdictMeca = `<div class="r-verdict ${okMeca ? "ok" : "ko"}">Mécanique : ${okMeca ? "structure vérifiée" : "structure insuffisante"}<small>Critère dimensionnant : ${nPire.titre}, ${libelleCritere(pire)} à ${fr(pire.taux * 100, 0)} % de sa valeur admissible.</small></div>`;
   const verdictGel = !gelActif || !Gr ? "" : Gr.erreur ? `<div class="r-verdict ko">Gel-dégel : calcul impossible<small>${esc(Gr.erreur)}</small></div>`
     : Gr.sansObjet ? `<div class="r-verdict ok">Gel-dégel : vérification sans objet<small>Plate-forme non gélive.</small></div>`
-    : `<div class="r-verdict ${okGel === false ? "ko" : "ok"}">Gel-dégel : ${okGel == null ? "indice de référence à saisir" : okGel ? "tenue vérifiée" : "tenue insuffisante"}<small>Indice de gel admissible IA ${Gr.IA != null ? grouper(Gr.IA) : `plus de ${grouper(Gr.IAmin)}`} °C·jour${ir != null ? `, indice de référence IR ${grouper(ir)} °C·jour` : ""}.</small></div>`;
+    : `<div class="r-verdict ${okGel === false ? "ko" : "ok"}">Gel-dégel : ${eGel === "indetermine" ? "tenue non établie (gel non parvenu à la plate-forme en 60 jours de calcul)" : okGel == null ? "indice de référence à saisir" : okGel ? "tenue vérifiée" : "tenue insuffisante"}<small>Indice de gel admissible IA ${Gr.IA != null ? grouper(Gr.IA) : `plus de ${grouper(Gr.IAmin)}`} °C·jour${ir != null ? `, indice de référence IR ${grouper(ir)} °C·jour` : ""}.</small></div>`;
   const tauxTxt = c => c.calc <= 0 ? "comprimé" : fr(c.taux * 100, 0) + " %";
   const tableCriteres = `<table><thead><tr><th>Couche</th><th>Critère</th><th>Position</th><th>Calculé</th><th>Admissible</th><th>Taux</th></tr></thead><tbody>${C.map(c => {
     const n = nomCritere(c);
@@ -5616,8 +5637,8 @@ function rendreResume() {
   else if (G.sansObjet) html += bouton("gel", "ok", "Gel : sans objet", "Plate-forme non gélive");
   else if (G.erreur) html += bouton("gel", "ko", "Gel : erreur", G.erreur);
   else {
-    const ir = irCourant(), ia = G.IA ?? G.IAmin, ok = ir == null || ia >= ir;
-    html += bouton("gel", ok ? "ok" : "ko", `Gel : IA ${G.IA != null ? grouper(G.IA) : "> " + grouper(G.IAmin)}${ir != null ? ` / IR ${grouper(ir)}` : ""}`, "Indice de gel admissible et indice de référence, voir l'onglet Gel-dégel");
+    const ir = irCourant(), eg = etatGel(G, ir);
+    html += bouton("gel", eg === "ko" ? "ko" : eg === "indetermine" ? "attente" : "ok", `Gel : IA ${G.IA != null ? grouper(G.IA) : "> " + grouper(G.IAmin)}${ir != null ? ` / IR ${grouper(ir)}` : ""}`, "Indice de gel admissible et indice de référence, voir l'onglet Gel-dégel");
   }
   $("#resume").innerHTML = html;
 }
@@ -5709,17 +5730,17 @@ const tableAide = (tete, lignes) => `<table><thead><tr>${tete.map(x => `<th>${x}
 const AIDES = {
   voie: { titre: "Type de voie", texte: `<p>Il fixe les CAM et les risques usuels de la NF P98-086 (annexe C).</p><p><b>Péri-urbaine ou rase campagne</b> : cas général. <b>À caractère autoroutier</b> : CAM plus forts à partir de T2. <b>Urbaine</b> : desserte (lotissement, accès riverains), distribution (voie collectrice de quartier), voie principale à trafic lourd (bus, livraisons). En urbain, la norme donne des CAM réduits pour les matériaux liés et un risque de 25 % (desserte, distribution) ou de 5 % (voie principale).</p>` },
   nedirect: { titre: "Trafic cumulé saisi", texte: `<p>À cocher si le nombre cumulé d'essieux équivalents de 13 t sur la durée de service (NE) est déjà connu : donnée du maître d'ouvrage, étude de trafic, pesées.</p><p>La même valeur sert alors aux trois critères. Sans MJA, la classe de trafic n'est pas connue : les risques usuels sont pris dans la colonne T2, à corriger au besoin.</p>` },
-  mja: { titre: "MJA poids lourds", texte: () => `<p>Moyenne journalière annuelle de poids lourds (plus de 3,5 t de PTAC) <b>sur la voie la plus chargée</b>, l'année de mise en service. Sur une route à deux voies bidirectionnelle, on prend en général la moitié du trafic PL total ; à deux voies par sens, environ 90 % du trafic du sens sur la voie de droite.</p>${tableAide(["Classe", "MJA (PL/j)"], CLASSES_TRAFIC.map(c => [c.id, c.max === Infinity ? `${c.min} et plus` : `${c.min} à ${c.max}`]))}` },
+  mja: { titre: "MJA poids lourds", texte: () => `<p>Moyenne journalière annuelle de poids lourds (plus de 3,5 t de PTAC) <b>sur la voie la plus chargée</b>, l'année de mise en service. Route bidirectionnelle hors agglomération (manuel IDRRIM-Cerema de 2020, § 6.2) : 50 % du trafic PL des deux sens si la chaussée fait plus de 6 m, 75 % de 5 à 6 m, 100 % sous 5 m ; en urbain, au cas par cas. À deux voies par sens, environ 90 % du trafic du sens sur la voie de droite (catalogue de 1998).</p>${tableAide(["Classe", "MJA (PL/j)"], CLASSES_TRAFIC.map(c => [c.id, c.max === Infinity ? `${c.min} et plus` : `${c.min} à ${c.max}`]))}` },
   duree: { titre: "Durée de dimensionnement", texte: `<p>Durée de service visée. Usuel : <b>20 ans</b> pour le réseau non structurant et la voirie urbaine, <b>30 ans</b> pour le réseau structurant.</p><p>Une durée plus courte avec un risque plus fort convient à un investissement progressif, quand un renforcement est prévu.</p>` },
   tau: { titre: "Taux de croissance", texte: `<p>Croissance annuelle du trafic poids lourds. Valeurs courantes : 1 à 2 % par an ; 0 % pour une voirie de lotissement dont le trafic ne changera pas.</p><p>Le facteur de cumul C multiplie le trafic de la première année.</p>` },
-  loi: { titre: "Loi de croissance", texte: `<p><b>Géométrique</b> : le trafic augmente chaque année de τ % de l'année précédente, C = [(1 + τ)<sup>p</sup> - 1] / τ (guide de 1994).</p><p><b>Arithmétique</b> : il augmente chaque année du même nombre de poids lourds, C = p [1 + (p - 1) τ / 2] (catalogue de 1998).</p><p>L'écart reste faible sous 2 % par an.</p>` },
-  cam: { titre: "Coefficient d'agressivité moyen (CAM)", texte: () => `<p>Il convertit le passage d'un poids lourd moyen en nombre d'essieux de référence de 13 t. Il dépend du matériau vérifié (une couche traitée aux liants hydrauliques est plus sensible aux surcharges) et du trafic.</p><p>Champs vides : valeurs de la NF P98-086, chaussées non autoroutières :</p>${tableAide(["", "T5", "T4", "T3-", "T3+", "T2 à T0"], [["Bitumineux", ...CAM_NON_AUTOROUTIER.bitumineux.map(v => fr(v, 2))], ["Hydrauliques", ...CAM_NON_AUTOROUTIER.hydraulique.map(v => fr(v, 2))], ["Sol et GNT", ...CAM_NON_AUTOROUTIER.sol.map(v => fr(v, 2))]])}<p>À caractère autoroutier (T2 et au-delà) : 0,8 ; 1,3 ; 1. En urbain : 0,1 à 0,2 pour les bitumineux. Ne les remplacer que si une étude de trafic donne une valeur propre.</p>` },
+  loi: { titre: "Loi de croissance", texte: `<p><b>Arithmétique</b> : le trafic augmente chaque année du même nombre de poids lourds, C = p [1 + (p - 1) τ / 2]. <b>Géométrique</b> : il augmente chaque année de τ % de l'année précédente, C = [(1 + τ)<sup>p</sup> - 1] / τ (manuel IDRRIM-Cerema de 2020, § 6.3, formules E2 et E3).</p><p>Sans information, le manuel retient une croissance arithmétique de 2 % par an, valeur par défaut de l'outil. L'écart entre les deux lois reste faible sous 2 % par an.</p>` },
+  cam: { titre: "Coefficient d'agressivité moyen (CAM)", texte: () => `<p>Il convertit le passage d'un poids lourd moyen en nombre d'essieux de référence de 13 t. Il dépend du matériau vérifié (une couche traitée aux liants hydrauliques est plus sensible aux surcharges) et du trafic.</p><p>Champs vides : valeurs de la NF P98-086, chaussées non autoroutières :</p>${tableAide(["", "T5", "T4", "T3-", "T3+", "T2 à T0"], [["Bitumineux", ...CAM_NON_AUTOROUTIER.bitumineux.map(v => fr(v, 2))], ["Hydrauliques", ...CAM_NON_AUTOROUTIER.hydraulique.map(v => fr(v, 2))], ["Sol et GNT", ...CAM_NON_AUTOROUTIER.sol.map(v => fr(v, 2))]])}<p>Valeurs de T5 à T3+ confirmées par le manuel IDRRIM-Cerema de 2020 (tableau 5). À caractère autoroutier (T2 et au-delà) : 0,8 ; 1,3 ; 1. En urbain, bitumineux : 0,1 en desserte, 0,2 en distribution, 0,4 sur voie principale à trafic lourd (cette dernière relevée dans Alizé2 pour T3-, les autres valeurs urbaines n'ont pas pu être relues dans la norme). Ne les remplacer que si une étude de trafic donne une valeur propre.</p>` },
   ne: { titre: "Trafic cumulé NE", texte: `<p>Nombre cumulé d'essieux équivalents de 130 kN sur la durée de service : NE = 365 × MJA × C × CAM.</p>` },
   risque: { titre: "Risque de calcul", texte: () => `<p>Probabilité que la chaussée présente des désordres structurels avant la fin de sa durée de service. Plus il est faible, plus la valeur admissible est réduite (coefficient kr). Les matériaux hydrauliques ont leur propre risque, leur dispersion étant plus forte.</p><p>Valeurs usuelles de la NF P98-086 (%) :</p>${tableAide(["", "T5", "T4", "T3", "T2", "T1", "T0", "TS"], [["Bitumineux", ...RISQUES.bitumineux.slice(0, 7).map(v => fr(v, 1))], ["Hydrauliques, semi-rigide", ...RISQUES.hydraulique["semi-rigide"].slice(0, 7).map(v => fr(v, 1))], ["Hydrauliques, mixte", ...RISQUES.hydraulique.mixte.slice(0, 7).map(v => fr(v, 1))]])}<p>Voies urbaines : 25 % (desserte, distribution), 5 % (voie principale).</p>` },
   theta: { titre: "Température équivalente", texte: `<p>Température constante qui produirait sur l'année le même endommagement que les températures réelles. <b>15 °C en France métropolitaine</b> : elle fixe le module des enrobés et le terme √(E<sub>10 °C</sub>/E<sub>θeq</sub>) des valeurs admissibles.</p><p>Ne la changer que pour un climat particulier (outre-mer : 25 à 28 °C).</p>` },
-  charge: { titre: "Charge de référence", texte: `<p>Charge française : essieu isolé de 13 t à roues jumelées, soit un jumelage de 65 kN. Chaque roue est un disque de 0,125 m de rayon chargé à 0,662 MPa, les deux roues étant espacées de 0,375 m d'axe en axe.</p><p>C'est la charge à laquelle se rapportent NE et les valeurs admissibles : ne la changer que pour une étude particulière.</p>` },
+  charge: { titre: "Charge de référence", texte: `<p>Charge française : essieu isolé de 13 t à roues jumelées (13 t est la charge maximale de l'essieu le plus chargé, Code de la route, art. R312-5), soit un jumelage de 65 kN. Chaque roue est un disque de 0,125 m de rayon chargé à 0,662 MPa, les deux roues étant espacées de 0,375 m d'axe en axe.</p><p>C'est la charge à laquelle se rapportent NE et les valeurs admissibles : ne la changer que pour une étude particulière.</p>` },
   geometrie: { titre: "Géométrie de la charge", texte: `<p>Pression q, rayon a du disque de contact et entraxe d des roues, modifiables en jumelage personnalisé ou en roue simple. La charge par roue vaut π a² q.</p>` },
-  coefA: { titre: "Coefficient A du sol", texte: `<p>Constante de la loi d'orniérage du sol : ε<sub>z,adm</sub> = A × NE<sup>-0,222</sup>.</p><p>NF P98-086 : <b>16 000 µdef</b> sous 250 000 essieux, <b>12 000 µdef</b> au-delà. Le guide de 1994 distinguait de même faible trafic et trafic moyen à fort.</p>` },
+  coefA: { titre: "Coefficient A du sol", texte: `<p>Constante de la loi d'orniérage du sol : ε<sub>z,adm</sub> = A × NE<sup>-0,222</sup>.</p><p>NF P98-086 : <b>16 000 µdef</b> sous 250 000 essieux (confirmé par le manuel IDRRIM-Cerema de 2020, § 11.6), <b>12 000 µdef</b> au-delà (valeur du catalogue de 1998, non relue dans la norme).</p>` },
   modele: { titre: "Structures types", texte: `<p>Points de départ tirés des familles du catalogue de 1998, épaisseurs à ajuster avec la recherche d'épaisseur minimale.</p><p><b>Bitumineuse épaisse</b> : trafic moyen à fort. <b>Souple</b> : faible trafic (GB sur GNT, ou simple couche de surface sur GNT). <b>Semi-rigide</b> : assise traitée aux liants hydrauliques. <b>Mixte</b> et <b>inverse</b> : bitumineux et hydrauliques combinés.</p>` },
   materiau: { titre: "Couches de la structure", texte: `<p>De haut en bas, la plate-forme en dernier. Couche de surface : BBSG (BBM et BBTM ne sont pas vérifiés en fatigue). Assise : GB, EME, graves-ciment, sables traités, bétons. Fondation non traitée : GNT.</p><p>"Couche de forme" modélise une couche de forme ou un sol de module connu, vérifié en ε<sub>z</sub>. Le bouton de réglage de chaque ligne ouvre les paramètres de fatigue de la couche.</p>` },
   epaisseur: { titre: "Épaisseur", texte: `<p>Épaisseur mise en oeuvre, en cm. La dispersion de l'épaisseur est prise en compte par l'écart type Sh dans les valeurs admissibles.</p><p>Une épaisseur hors de la plage de mise en oeuvre du matériau est signalée sous la structure (catalogue des structures types de 1998, tableau 3 : GB 8 à 15 cm, EME 6 à 13 cm, graves traitées 15 à 32 cm, sables traités 15 à 45 cm, GNT 10 à 35 cm, bétons BC2, BC5 et BAC 12 à 40 cm ; en fondation, minimum relevé selon la plate-forme). Les couches de surface n'ont pas de plage : leur épaisseur se choisit selon la technique et la granularité.</p>` },
@@ -5745,13 +5766,13 @@ const AIDES = {
   departement: { titre: "Département", texte: `<p>Sans commune, la liste montre les stations du département qui ont au moins 20 hivers complets sur la période choisie. Un projet proche d'une limite départementale gagne à chercher sa commune.</p>` },
   periode: { titre: "Période des données", texte: `<p><b>1951-1997</b> : période du catalogue de 1998, à retenir pour rester cohérent avec les valeurs de référence et avec Alizé.</p><p><b>1951-2026</b> : toutes les années disponibles. Les hivers récents, plus doux, abaissent en général l'hiver rigoureux non exceptionnel ; l'hiver exceptionnel reste le plus souvent celui de 1956, 1963 ou 1985.</p>` },
   station: { titre: "Station météorologique", texte: `<p>Indices de gel calculés sur les relevés quotidiens de chaque station Météo-France (données ouvertes) avec les règles du catalogue de 1998 : l'indice d'un hiver est la plus grande baisse de la courbe des températures moyennes journalières cumulées ; l'hiver exceptionnel est le plus fort de la période, l'hiver rigoureux non exceptionnel le n-ième plus fort, n étant le nombre d'hivers divisé par 10.</p><p>Les stations du catalogue (badge) gardent leurs valeurs officielles sur 1951-1997. Retenir une station proche, d'altitude et d'exposition comparables. Exc. : hiver exceptionnel ; Rig. : hiver rigoureux non exceptionnel ; le nombre d'hivers complets s'affiche au survol d'une ligne.</p>` },
-  hiver: { titre: "Hiver de référence", texte: `<p>Choix du gestionnaire de la voie, qui fixe la fréquence des barrières de dégel.</p><p><b>Exceptionnel</b> : l'hiver le plus rigoureux de la période. <b>Rigoureux non exceptionnel</b> : l'hiver décennal. Le réseau structurant se protège en général contre l'hiver exceptionnel, le reste contre l'hiver rigoureux non exceptionnel.</p>` },
+  hiver: { titre: "Hiver de référence", texte: `<p>Il fixe le risque de pose de barrières de dégel. <b>Exceptionnel</b> : l'hiver le plus rigoureux de la période. <b>Rigoureux non exceptionnel</b> : l'hiver décennal.</p><p>La NF P98-086 laisse le choix au maître d'ouvrage : hiver exceptionnel, décennal ou tout autre (manuel IDRRIM-Cerema de 2020, § 3.2, qui cite la norme et ajoute qu'à faible trafic on retient généralement l'hiver rigoureux non exceptionnel). Sur le réseau routier national, la lettre-circulaire du 26 octobre 1998 (catalogue de 1998) impose l'hiver exceptionnel, sauf pour les routes dont le trafic journalier est inférieur à T3 (moins de 50 PL/j).</p>` },
   ir: { titre: "Indice de gel de référence IR", texte: `<p>Indice de gel atmosphérique : somme, sur la période de gel, des températures moyennes journalières négatives de l'air, en °C·jour.</p><p>La structure tient au gel-dégel si son indice admissible IA est au moins égal à IR. Une saisie remplace la valeur de la station.</p>` },
-  gelivite: { titre: "Sensibilité au gel du sol", texte: `<p>Mesurée par la pente p de l'essai de gonflement au gel (NF P98-234-2) : <b>non gélif</b> (SGn) si p ≤ 0,05, <b>peu gélif</b> (SGp) jusqu'à 0,4, <b>très gélif</b> (SGt) au-delà.</p><p>Sans essai : les limons et sols fins sont en général peu ou très gélifs, les graves propres et les roches saines non gélives. Une couche est réputée aussi gélive que celle qui la surmonte si celle-ci l'est davantage.</p>` },
+  gelivite: { titre: "Sensibilité au gel du sol", texte: `<p>Mesurée par la pente p de l'essai de gonflement au gel (NF P98-234-2) : <b>non gélif</b> (SGn) si p ≤ 0,05, <b>peu gélif</b> (SGp) jusqu'à 0,4, <b>très gélif</b> (SGt) au-delà.</p><p>Sans essai, classes indicatives du manuel IDRRIM-Cerema de 2020 (tableau 27) : non gélifs les seuls matériaux insensibles à l'eau dont le passant à 80 µm est inférieur à 3 % ; peu gélifs C1, B1, B3, A3, A4 ; très gélifs C1, A1, A2, B2, B4, B5, B6, R1, R3. Une même classe peut se comporter très différemment : l'essai de gonflement reste préférable, et indispensable pour un matériau absent du tableau (catalogue de 1998, annexe 3). Une couche est réputée aussi gélive que celle qui la surmonte si celle-ci l'est davantage.</p>` },
   pente: { titre: "Pente p de l'essai de gonflement", texte: `<p>Pente de la courbe de gonflement au gel, en mm/(°C·h)<sup>1/2</sup>. Elle fixe la quantité de gel admissible Q<sub>g</sub> en surface du sol gélif : 4 si p ≤ 0,25, 1/p jusqu'à 1, nulle au-delà (gonflement limité à 5 mm).</p>` },
   hp: { titre: "Épaisseur peu gélive", texte: `<p>Épaisseur de sol peu gélif au-dessus du sol très gélif. Q<sub>g</sub> passe linéairement de la valeur du sol très gélif (h<sub>p</sub> nul) à celle du sol peu gélif (h<sub>p</sub> de 20 cm et plus).</p>` },
   hn: { titre: "Matériaux non gélifs", texte: `<p>Épaisseur de matériaux non gélifs de la plate-forme (couche de forme, partie haute non gélive du sol) qui n'est pas déjà dans la structure. Elle apporte la protection Q<sub>ng</sub> = A<sub>n</sub> h<sub>n</sub>² / (h<sub>n</sub> + 10).</p><p>Ne pas compter deux fois une couche de forme déjà saisie comme couche de la structure : celle-ci entre dans le calcul thermique.</p>` },
-  an: { titre: "Nature des non gélifs (An)", texte: () => `<p>Coefficient A<sub>n</sub> selon la classe du matériau (NF P11-300), en (°C·jour)<sup>1/2</sup>/cm :</p>${tableAide(["Matériau", "A<sub>n</sub>"], AN_MATERIAUX.map(a => [a.nom, fr(a.an, 2)]))}` },
+  an: { titre: "Nature des non gélifs (An)", texte: () => `<p>Coefficient A<sub>n</sub> selon la classe du matériau, en (°C·jour)<sup>1/2</sup>/cm. Classes de la classification des matériaux de terrassement du GTR (édition 2024) ; la NF P11-300 de 1992 qui la portait a été remplacée en janvier 2025.</p>${tableAide(["Matériau", "A<sub>n</sub>"], AN_MATERIAUX.map(a => [a.nom, fr(a.an, 2)]))}<p>Valeurs de la NF P98-086 de 2019 reprises par le manuel IDRRIM-Cerema de 2020 (tableau 28). Elles remplacent celles du catalogue de 1998 (sols A 0,15, B et C 0,13, D 0,12) : un sol non traité n'est plus compté non gélif que s'il est insensible à l'eau avec moins de 3 % de passant à 80 µm.</p>` },
   qm: { titre: "Apport mécanique QM", texte: `<p>Au-delà de 20 cm de matériaux liés, la chaussée tolère une pénétration limitée du gel dans le sol gélif. On cherche l'épaisseur e de sol dégelé (module de la plate-forme divisé par 10) qui augmente de 5 % la sollicitation de fatigue des couches liées ; Q<sub>M</sub> = e / 10, e en cm, comme dans Alizé.</p>` },
   courbe: { titre: "Protection thermique", texte: `<p>Résultat du calcul thermique de propagation du gel (NF P98-086, annexe H) : indice de gel en surface IS nécessaire pour transmettre une quantité de gel donnée au niveau de la plate-forme.</p><p>Le point marque Q<sub>PF</sub> : l'indice de surface admissible donne IA = IS / 0,7 + 10. La ligne IR situe l'indice du site.</p>` }
 };
@@ -5930,9 +5951,24 @@ function lancerGel() {
     if (jeton === gelJeton) { G = r; rendreGel(); rendreResume(); }
   }, 250);
 }
+// Verdict du gel. Au-delà de 60 jours de calcul, IA n'est connu que par sa borne basse IAmin : la tenue n'est établie
+// que si cette borne atteint IR ; sinon on ne peut pas conclure (Alizé2 ne conclut jamais dans ce cas, guide v2.2.2, onglet Vérification).
+function etatGel(G, ir) {
+  if (ir == null) return "attente";
+  if (G.IA != null) return G.IA >= ir ? "ok" : "ko";
+  return G.IAmin >= ir ? "ok" : "indetermine";
+}
+
 function rendreGel() {
   const ir = irCourant(), v = $("#gelVerdict"), det = $("#gelDet");
   const notes = [];
+  const cl = R && R.TR ? R.TR.classe : null, sousT3 = cl && ["T5", "T4"].includes(cl.id);
+  if (cl && !sousT3 && E.gel.hiver === "HRNE")
+    notes.push(note("info", `Trafic ${cl.id} : sur le réseau routier national, la lettre-circulaire du 26 octobre 1998 impose l'hiver exceptionnel à partir de T3. Ailleurs, le choix revient au maître d'ouvrage (NF P98-086).`));
+  if (sousT3 && E.gel.hiver === "HE")
+    notes.push(note("info", `Trafic ${cl.id} : à faible trafic, l'hiver rigoureux non exceptionnel est généralement retenu (manuel IDRRIM-Cerema de 2020, § 3.2), et la lettre-circulaire de 1998 l'admet sous T3. L'hiver exceptionnel reste un choix plus prudent.`));
+  if (RISQUE_URBAIN[E.trafic.voie] != null)
+    notes.push(note("warn", "Voie urbaine : dans une agglomération de plus de 100 000 habitants, la NF P98-086 (§ 6.2.4) pondère l'indice admissible IA par un coefficient de localisation, et le coefficient Kcr (0,7) peut être ajusté, comme dans Alizé2. L'outil applique IA = IS / 0,7 + 10, valable hors agglomération : le contrôler dans la norme."));
   if (E.couches.some(c => MAT[c.mat].id === "CDF") && (E.gel.hn || 0) > 0)
     notes.push(note("warn", "La structure contient une couche de forme et h<sub>n</sub> n'est pas nul : vérifier que la même épaisseur n'est pas comptée deux fois."));
   if (ir != null && ir > 210) notes.push(note("warn", "La relation IS = 0,7 (IA - 10) entre indices de surface et atmosphérique est établie pour un indice qui ne dépasse pas 210 °C·jour en altitude moyenne ; au-delà, ou avec un fort ensoleillement, une étude particulière est recommandée."));
@@ -5950,10 +5986,11 @@ function rendreGel() {
     return;
   }
   $("#gelGraphe").hidden = false;
-  const ia = G.IA ?? G.IAmin, ok = ir == null || ia >= ir, iaTxt = G.IA != null ? grouper(G.IA) : `plus de ${grouper(G.IAmin)}`;
-  v.className = "verdict " + (ir == null ? "attente" : ok ? "ok" : "ko");
-  v.innerHTML = `${ico(ir == null ? "info" : ok ? "succes" : "echec", 26)}<div><div class="v-titre">${ir == null ? "Indice de référence à saisir" : ok ? "Tenue au gel-dégel vérifiée" : "Tenue au gel-dégel insuffisante"}</div>
-    <div class="v-sous">Indice de gel admissible IA ${iaTxt} °C·jour${ir != null ? `, indice de référence IR ${grouper(ir)} °C·jour` : ""}${ir != null && !ok ? ". Épaissir la chaussée ou les matériaux non gélifs de la plate-forme." : ""}</div></div>`;
+  const eg = etatGel(G, ir), iaTxt = G.IA != null ? grouper(G.IA) : `plus de ${grouper(G.IAmin)}`;
+  v.className = "verdict " + (eg === "indetermine" ? "attente" : eg);
+  v.innerHTML = `${ico({ attente: "info", ok: "succes", ko: "echec", indetermine: "attention" }[eg], 26)}<div><div class="v-titre">${{ attente: "Indice de référence à saisir", ok: "Tenue au gel-dégel vérifiée", ko: "Tenue au gel-dégel insuffisante", indetermine: "Tenue au gel-dégel non établie" }[eg]}</div>
+    <div class="v-sous">Indice de gel admissible IA ${iaTxt} °C·jour${ir != null ? `, indice de référence IR ${grouper(ir)} °C·jour` : ""}${eg === "ko" ? ". Épaissir la chaussée ou les matériaux non gélifs de la plate-forme." : eg === "indetermine" ? ". Le gel n'atteint pas la plate-forme en 60 jours de calcul : IA n'est connu que par cette borne, on ne peut pas conclure (comme Alizé2)." : ""}</div></div>`;
+  if (eg === "ok" && G.IA == null) notes.push(note("info", "Le gel n'atteint pas la plate-forme en 60 jours de calcul : Alizé2 ne conclut pas dans ce cas ; l'outil conclut parce que la borne basse de IA atteint déjà IR."));
   const g = E.gel, st = stationCourante(), vs = valeursStation(st, g.periode) || {};
   const solTxt = { SGp: `peu gélif, p = ${fr(g.pSGp, 2)}`, SGt: `très gélif, p = ${fr(g.pSGt, 2)}`, SGpSGt: `peu gélif (p = ${fr(g.pSGp, 2)}, ${fr(g.hp, 0)} cm) sur très gélif (p = ${fr(g.pSGt, 2)})` }[g.sol];
   const anNom = (AN_MATERIAUX.find(a => a.id === g.an) || {}).nom || "";

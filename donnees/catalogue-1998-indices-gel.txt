@@ -14,7 +14,7 @@
   ["59", "Lille", 250, 90], ["60", "Beauvais", 215, 95], ["61", "Alençon", 165, 70], ["62", "Boulogne-sur-mer", 165, 70],
   ["63", "Clermont-Ferrand", 225, 115], ["64", "Biarritz", 40, 10], ["64", "Pau", 80, 30], ["65", "Tarbes", 95, 35],
   ["66", "Perpignan", 25, 0], ["67", "Strasbourg", 410, 165], ["68", "Mulhouse", 415, 155], ["69", "Lyon-Bron", 220, 110],
-  ["69", "Tarare", 275, 155], ["70", "Luxeuil", 335, 165], ["71", "Mont-Saint-Vincent", 270, 150], ["72", "Le Mans", 120, 70],
+  ["69", "Tarare", 275, 155], ["70", "Luxeuil", 335, 165], ["71", "Mâcon", 200, 115], ["71", "Mont-Saint-Vincent", 270, 150], ["72", "Le Mans", 120, 70],
   ["73", "Bourg-Saint-Maurice", 220, 190], ["73", "Challes-les-Eaux", 225, 150], ["76", "La Hève", 95, 60], ["76", "Rouen-Boos", 130, 90],
   ["77", "Melun", 185, 90], ["80", "Abbeville", 165, 90], ["83", "Saint-Raphaël", 25, 0], ["83", "Toulon", 15, 0],
   ["84", "Orange", 80, 45], ["86", "Poitiers", 130, 65], ["87", "Limoges", 160, 80], ["89", "Auxerre", 200, 95],
